@@ -34,7 +34,10 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       },
     },
-    trustedOrigins: ["pennify://"],
+    trustedOrigins: [
+      "pennify://",
+      "https://pennifyweb.vercel.app",
+    ],
     plugins: [expo(), convex({ authConfig })],
   } satisfies BetterAuthOptions;
 };
