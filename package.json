@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@better-auth/expo": "^1.4.9",
     "@convex-dev/better-auth": "0.10.10",
     "better-auth": "1.4.9",
     "class-variance-authority": "^0.7.1",

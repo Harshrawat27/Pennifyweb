@@ -3,6 +3,7 @@ import { convex } from '@convex-dev/better-auth/plugins';
 import type { GenericCtx } from '@convex-dev/better-auth/utils';
 import type { BetterAuthOptions } from 'better-auth';
 import { betterAuth } from 'better-auth';
+import { expo } from '@better-auth/expo';
 import { components } from '../_generated/api';
 import type { DataModel } from '../_generated/dataModel';
 import authConfig from '../auth.config';
@@ -33,7 +34,8 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       },
     },
-    plugins: [convex({ authConfig })],
+    trustedOrigins: ["pennify://"],
+    plugins: [expo(), convex({ authConfig })],
   } satisfies BetterAuthOptions;
 };
 
