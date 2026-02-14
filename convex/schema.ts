@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import { defineSchema, defineTable } from 'convex/server';
+import { v } from 'convex/values';
 
 export default defineSchema({
   accounts: defineTable({
@@ -12,8 +12,8 @@ export default defineSchema({
     updatedAt: v.string(),
     deleted: v.optional(v.boolean()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_localId", ["userId", "localId"]),
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId']),
 
   categories: defineTable({
     userId: v.string(),
@@ -25,8 +25,8 @@ export default defineSchema({
     updatedAt: v.string(),
     deleted: v.optional(v.boolean()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_localId", ["userId", "localId"]),
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId']),
 
   transactions: defineTable({
     userId: v.string(),
@@ -40,9 +40,9 @@ export default defineSchema({
     updatedAt: v.string(),
     deleted: v.optional(v.boolean()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_localId", ["userId", "localId"])
-    .index("by_user_date", ["userId", "date"]),
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId'])
+    .index('by_user_date', ['userId', 'date']),
 
   budgets: defineTable({
     userId: v.string(),
@@ -53,9 +53,9 @@ export default defineSchema({
     updatedAt: v.string(),
     deleted: v.optional(v.boolean()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_localId", ["userId", "localId"])
-    .index("by_user_month", ["userId", "month"]),
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId'])
+    .index('by_user_month', ['userId', 'month']),
 
   goals: defineTable({
     userId: v.string(),
@@ -68,8 +68,8 @@ export default defineSchema({
     updatedAt: v.string(),
     deleted: v.optional(v.boolean()),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_localId", ["userId", "localId"]),
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId']),
 
   settings: defineTable({
     userId: v.string(),
@@ -77,6 +77,6 @@ export default defineSchema({
     value: v.string(),
     updatedAt: v.string(),
   })
-    .index("by_user", ["userId"])
-    .index("by_user_key", ["userId", "key"]),
+    .index('by_user', ['userId'])
+    .index('by_user_key', ['userId', 'key']),
 });
