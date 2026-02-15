@@ -158,3 +158,23 @@ export const pullAll = query({
     return { accounts, categories, transactions, budgets, goals, settings };
   },
 });
+
+export const deleteUserData = mutation({
+  args: { userId: v.string() },
+  handler: async (ctx, args) => {
+    const userId = args.userId;
+
+    // Delete all user data from app tables
+    const tables = ["accounts", "categories", "transactions", "budgets", "goals", "settings"] as const;
+
+    for (const table of tables) {
+      const rows = await ctx.db
+        .query(table)
+        .withIndex("by_user", (q) => q.eq("userId", userId))
+        .collect();
+      for (const row of rows) {
+        await ctx.db.delete(row._id);
+      }
+    }
+  },
+});
