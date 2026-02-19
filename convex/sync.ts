@@ -69,12 +69,36 @@ export const pushBatch = mutation({
         updatedAt: v.string(),
       })
     ),
+    userPreferences: v.optional(
+      v.object({
+        localId: v.string(),
+        email: v.optional(v.string()),
+        currency: v.string(),
+        overall_balance: v.number(),
+        track_income: v.boolean(),
+        notifications_enabled: v.boolean(),
+        daily_reminder: v.boolean(),
+        weekly_report: v.boolean(),
+        sync_enabled: v.boolean(),
+        has_onboarded: v.optional(v.string()),
+        updatedAt: v.string(),
+      })
+    ),
+    monthlyBudgets: v.array(
+      v.object({
+        localId: v.string(),
+        month: v.string(),
+        budget: v.number(),
+        updatedAt: v.string(),
+        deleted: v.optional(v.boolean()),
+      })
+    ),
   },
   handler: async (ctx, args) => {
     const userId = args.userId;
 
     async function upsertByLocalId(
-      table: "accounts" | "categories" | "transactions" | "budgets" | "goals",
+      table: "accounts" | "categories" | "transactions" | "budgets" | "goals" | "monthly_budgets",
       record: Record<string, unknown>
     ) {
       const existing = await ctx.db
@@ -121,6 +145,28 @@ export const pushBatch = mutation({
     for (const r of args.budgets) await upsertByLocalId("budgets", r);
     for (const r of args.goals) await upsertByLocalId("goals", r);
     for (const r of args.settings) await upsertSetting(r);
+
+    // User preferences (single row per user)
+    if (args.userPreferences) {
+      const pref = args.userPreferences;
+      const existing = await ctx.db
+        .query("user_preferences")
+        .withIndex("by_user_localId", (q) =>
+          q.eq("userId", userId).eq("localId", pref.localId)
+        )
+        .unique();
+
+      if (existing) {
+        if (pref.updatedAt >= existing.updatedAt) {
+          await ctx.db.patch(existing._id, pref);
+        }
+      } else {
+        await ctx.db.insert("user_preferences", { userId, ...pref } as never);
+      }
+    }
+
+    // Monthly budgets
+    for (const r of args.monthlyBudgets) await upsertByLocalId("monthly_budgets", r);
   },
 });
 
@@ -154,8 +200,16 @@ export const pullAll = query({
       .query("settings")
       .withIndex("by_user", (q) => q.eq("userId", userId))
       .collect();
+    const userPreferences = await ctx.db
+      .query("user_preferences")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .first();
+    const monthlyBudgets = await ctx.db
+      .query("monthly_budgets")
+      .withIndex("by_user", (q) => q.eq("userId", userId))
+      .collect();
 
-    return { accounts, categories, transactions, budgets, goals, settings };
+    return { accounts, categories, transactions, budgets, goals, settings, userPreferences, monthlyBudgets };
   },
 });
 
@@ -164,8 +218,7 @@ export const deleteUserData = mutation({
   handler: async (ctx, args) => {
     const userId = args.userId;
 
-    // Delete all user data from app tables
-    const tables = ["accounts", "categories", "transactions", "budgets", "goals", "settings"] as const;
+    const tables = ["accounts", "categories", "transactions", "budgets", "goals", "settings", "user_preferences", "monthly_budgets"] as const;
 
     for (const table of tables) {
       const rows = await ctx.db

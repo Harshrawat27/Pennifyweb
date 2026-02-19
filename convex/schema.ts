@@ -79,4 +79,33 @@ export default defineSchema({
   })
     .index('by_user', ['userId'])
     .index('by_user_key', ['userId', 'key']),
+
+  user_preferences: defineTable({
+    userId: v.string(),
+    localId: v.string(),
+    email: v.optional(v.string()),
+    currency: v.string(),
+    overall_balance: v.number(),
+    track_income: v.boolean(),
+    notifications_enabled: v.boolean(),
+    daily_reminder: v.boolean(),
+    weekly_report: v.boolean(),
+    sync_enabled: v.boolean(),
+    has_onboarded: v.optional(v.string()),
+    updatedAt: v.string(),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId']),
+
+  monthly_budgets: defineTable({
+    userId: v.string(),
+    localId: v.string(),
+    month: v.string(),
+    budget: v.number(),
+    updatedAt: v.string(),
+    deleted: v.optional(v.boolean()),
+  })
+    .index('by_user', ['userId'])
+    .index('by_user_localId', ['userId', 'localId'])
+    .index('by_user_month', ['userId', 'month']),
 });
