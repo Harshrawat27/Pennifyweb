@@ -8,8 +8,16 @@
  * @module
  */
 
+import type * as accounts from "../accounts.js";
+import type * as budgets from "../budgets.js";
+import type * as categories from "../categories.js";
+import type * as goals from "../goals.js";
 import type * as http from "../http.js";
+import type * as monthlyBudgets from "../monthlyBudgets.js";
+import type * as onboarding from "../onboarding.js";
+import type * as preferences from "../preferences.js";
 import type * as sync from "../sync.js";
+import type * as transactions from "../transactions.js";
 
 import type {
   ApiFromModules,
@@ -18,8 +26,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  accounts: typeof accounts;
+  budgets: typeof budgets;
+  categories: typeof categories;
+  goals: typeof goals;
   http: typeof http;
+  monthlyBudgets: typeof monthlyBudgets;
+  onboarding: typeof onboarding;
+  preferences: typeof preferences;
   sync: typeof sync;
+  transactions: typeof transactions;
 }>;
 
 /**
