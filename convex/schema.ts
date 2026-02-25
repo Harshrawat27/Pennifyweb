@@ -36,11 +36,11 @@ export default defineSchema({
     categoryId: v.optional(v.id('categories')),
     accountId: v.optional(v.id('accounts')),
     // Legacy refs (old SQLite sync)
-    categoryLocalId: v.optional(v.string()),
-    accountLocalId: v.optional(v.string()),
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // categoryLocalId: v.optional(v.string()),
+    // accountLocalId: v.optional(v.string()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   })
     .index('by_user', ['userId'])
     .index('by_user_date', ['userId', 'date']),
