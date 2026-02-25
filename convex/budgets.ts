@@ -14,7 +14,6 @@ export const listByMonth = query({
     const budgets = await ctx.db
       .query('budgets')
       .withIndex('by_user_month', (q) => q.eq('userId', userId).eq('month', month))
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
 
     const start = month + '-01';

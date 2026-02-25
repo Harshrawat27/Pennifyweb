@@ -7,7 +7,6 @@ export const list = query({
     return await ctx.db
       .query('categories')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
   },
 });
@@ -18,9 +17,7 @@ export const listByType = query({
     return await ctx.db
       .query('categories')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) =>
-        q.and(q.eq(q.field('type'), type), q.neq(q.field('deleted'), true))
-      )
+      .filter((q) => q.eq(q.field('type'), type))
       .collect();
   },
 });

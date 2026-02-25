@@ -7,7 +7,6 @@ export const list = query({
     return await ctx.db
       .query('goals')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
   },
 });

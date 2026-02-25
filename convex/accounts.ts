@@ -7,7 +7,6 @@ export const list = query({
     return await ctx.db
       .query('accounts')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
   },
 });
@@ -17,11 +16,10 @@ export const create = mutation({
     userId: v.string(),
     name: v.string(),
     type: v.string(),
-    balance: v.number(),
     icon: v.string(),
   },
-  handler: async (ctx, { userId, name, type, balance, icon }) => {
-    return await ctx.db.insert('accounts', { userId, name, type, balance, icon });
+  handler: async (ctx, { userId, name, type, icon }) => {
+    return await ctx.db.insert('accounts', { userId, name, type, icon });
   },
 });
 

@@ -37,7 +37,6 @@ export const commitAll = mutation({
       v.object({
         name: v.string(),
         type: v.string(),
-        balance: v.number(),
         icon: v.string(),
       })
     ),
@@ -66,7 +65,7 @@ export const commitAll = mutation({
 
     // 2. Create accounts
     for (const acc of args.accounts) {
-      await ctx.db.insert('accounts', { userId, ...acc });
+      await ctx.db.insert('accounts', { userId, name: acc.name, type: acc.type, icon: acc.icon });
     }
 
     // 3. Create categories (selected + custom + built-in income)
