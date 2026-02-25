@@ -47,7 +47,6 @@ export const getTotalBalance = query({
     const transactions = await ctx.db
       .query('transactions')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
 
     const txSum = transactions.reduce((sum, t) => sum + t.amount, 0);

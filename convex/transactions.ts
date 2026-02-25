@@ -19,10 +19,9 @@ export const listByMonth = query({
       .withIndex('by_user_date', (q) =>
         q.eq('userId', userId).gte('date', start).lt('date', end)
       )
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
 
-    // Fetch category for each transaction (new-style transactions only)
+    // Fetch category and account for each transaction
     return await Promise.all(
       txs.map(async (tx) => {
         let categoryName = 'Unknown';
@@ -34,7 +33,16 @@ export const listByMonth = query({
             categoryIcon = cat.icon;
           }
         }
-        return { ...tx, categoryName, categoryIcon };
+        let accountName = '';
+        let accountIcon = '';
+        if (tx.accountId) {
+          const acc = await ctx.db.get(tx.accountId as Id<'accounts'>);
+          if (acc) {
+            accountName = acc.name;
+            accountIcon = acc.icon;
+          }
+        }
+        return { ...tx, categoryName, categoryIcon, accountName, accountIcon };
       })
     );
   },
@@ -51,7 +59,6 @@ export const getMonthlyStats = query({
       .withIndex('by_user_date', (q) =>
         q.eq('userId', userId).gte('date', start).lt('date', end)
       )
-      .filter((q) => q.neq(q.field('deleted'), true))
       .collect();
 
     let income = 0;
@@ -75,12 +82,7 @@ export const getCategoryBreakdown = query({
       .withIndex('by_user_date', (q) =>
         q.eq('userId', userId).gte('date', start).lt('date', end)
       )
-      .filter((q) =>
-        q.and(
-          q.neq(q.field('deleted'), true),
-          q.lt(q.field('amount'), 0) // expenses only
-        )
-      )
+      .filter((q) => q.lt(q.field('amount'), 0)) // expenses only
       .collect();
 
     const catMap = new Map<string, { name: string; icon: string; amount: number }>();
@@ -114,12 +116,7 @@ export const getDailySpending = query({
       .withIndex('by_user_date', (q) =>
         q.eq('userId', userId).gte('date', start).lt('date', end)
       )
-      .filter((q) =>
-        q.and(
-          q.neq(q.field('deleted'), true),
-          q.lt(q.field('amount'), 0)
-        )
-      )
+      .filter((q) => q.lt(q.field('amount'), 0))
       .collect();
 
     const dayMap = new Map<string, number>();
@@ -160,5 +157,79 @@ export const remove = mutation({
   args: { id: v.id('transactions') },
   handler: async (ctx, { id }) => {
     await ctx.db.delete(id);
+  },
+});
+
+// Generic stats for any date range — used by week view
+export const getStatsForPeriod = query({
+  args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
+  handler: async (ctx, { userId, startDate, endDate }) => {
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', startDate).lte('date', endDate)
+      )
+      .collect();
+
+    let income = 0;
+    let expenses = 0;
+    const dayMap = new Map<string, number>();
+    const catMap = new Map<string, { name: string; icon: string; amount: number }>();
+
+    for (const tx of txs) {
+      if (tx.amount > 0) {
+        income += tx.amount;
+      } else {
+        const abs = Math.abs(tx.amount);
+        expenses += abs;
+        dayMap.set(tx.date, (dayMap.get(tx.date) ?? 0) + abs);
+        if (tx.categoryId) {
+          const catId = tx.categoryId.toString();
+          if (!catMap.has(catId)) {
+            const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+            if (cat) catMap.set(catId, { name: cat.name, icon: cat.icon, amount: 0 });
+          }
+          if (catMap.has(catId)) catMap.get(catId)!.amount += abs;
+        }
+      }
+    }
+
+    const catTotal = expenses;
+    const categoryBreakdown = [...catMap.values()]
+      .sort((a, b) => b.amount - a.amount)
+      .map((c) => ({ ...c, percent: catTotal > 0 ? Math.round((c.amount / catTotal) * 100) : 0 }));
+
+    const dailyBreakdown = [...dayMap.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, amount]) => ({ date, amount }));
+
+    return { income, expenses, dailyBreakdown, categoryBreakdown };
+  },
+});
+
+// Monthly income/expenses for every month in a year — used by year view
+export const getYearlyMonthly = query({
+  args: { userId: v.string(), year: v.string() },
+  handler: async (ctx, { userId, year }) => {
+    const start = `${year}-01-01`;
+    const end = `${parseInt(year) + 1}-01-01`;
+
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', start).lt('date', end)
+      )
+      .collect();
+
+    const LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthData = LABELS.map((label) => ({ label, income: 0, expenses: 0 }));
+
+    for (const tx of txs) {
+      const idx = parseInt(tx.date.slice(5, 7)) - 1;
+      if (tx.amount > 0) monthData[idx].income += tx.amount;
+      else monthData[idx].expenses += Math.abs(tx.amount);
+    }
+
+    return monthData;
   },
 });

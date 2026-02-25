@@ -66,6 +66,8 @@ export default defineSchema({
     target: v.number(),
     saved: v.number(),
     color: v.string(),
+    status: v.optional(v.union(v.literal('active'), v.literal('completed'))),
+    completedAt: v.optional(v.string()), // YYYY-MM-DD
     // Legacy
     localId: v.optional(v.string()),
     updatedAt: v.optional(v.string()),

@@ -42,7 +42,6 @@ export const listByMonth = query({
               .filter((q) =>
                 q.and(
                   q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>),
-                  q.neq(q.field('deleted'), true),
                   q.lt(q.field('amount'), 0)
                 )
               )
