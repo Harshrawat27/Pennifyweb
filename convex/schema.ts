@@ -6,12 +6,12 @@ export default defineSchema({
     userId: v.string(),
     name: v.string(),
     type: v.string(),
-    balance: v.number(), // initial/starting balance
+    // balance: v.optional(v.number()), // initial/starting balance
     icon: v.string(),
     // Legacy fields (kept for backward compat with old sync data)
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   }).index('by_user', ['userId']),
 
   categories: defineTable({
@@ -21,9 +21,9 @@ export default defineSchema({
     type: v.string(), // 'expense' | 'income'
     color: v.string(),
     // Legacy
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   }).index('by_user', ['userId']),
 
   transactions: defineTable({
@@ -51,10 +51,10 @@ export default defineSchema({
     limitAmount: v.number(),
     month: v.string(), // YYYY-MM
     // Legacy
-    categoryLocalId: v.optional(v.string()),
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // categoryLocalId: v.optional(v.string()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   })
     .index('by_user', ['userId'])
     .index('by_user_month', ['userId', 'month']),
@@ -69,9 +69,9 @@ export default defineSchema({
     status: v.optional(v.union(v.literal('active'), v.literal('completed'))),
     completedAt: v.optional(v.string()), // YYYY-MM-DD
     // Legacy
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   }).index('by_user', ['userId']),
 
   settings: defineTable({
@@ -86,6 +86,7 @@ export default defineSchema({
   user_preferences: defineTable({
     userId: v.string(),
     currency: v.string(),
+    overallBalance: v.optional(v.number()),
     trackIncome: v.optional(v.boolean()),
     notificationsEnabled: v.optional(v.boolean()),
     dailyReminder: v.optional(v.boolean()),
@@ -108,9 +109,9 @@ export default defineSchema({
     month: v.string(), // YYYY-MM
     budget: v.number(),
     // Legacy
-    localId: v.optional(v.string()),
-    updatedAt: v.optional(v.string()),
-    deleted: v.optional(v.boolean()),
+    // localId: v.optional(v.string()),
+    // updatedAt: v.optional(v.string()),
+    // deleted: v.optional(v.boolean()),
   })
     .index('by_user', ['userId'])
     .index('by_user_month', ['userId', 'month']),

@@ -15,6 +15,7 @@ export const upsert = mutation({
   args: {
     userId: v.string(),
     currency: v.string(),
+    overallBalance: v.optional(v.number()),
     trackIncome: v.optional(v.boolean()),
     notificationsEnabled: v.optional(v.boolean()),
     dailyReminder: v.optional(v.boolean()),

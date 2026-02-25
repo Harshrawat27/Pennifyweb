@@ -27,6 +27,7 @@ export const commitAll = mutation({
     userId: v.string(),
     preferences: v.object({
       currency: v.string(),
+      overallBalance: v.number(),
       trackIncome: v.boolean(),
       notificationsEnabled: v.boolean(),
       dailyReminder: v.boolean(),

@@ -35,15 +35,15 @@ export const remove = mutation({
 export const getTotalBalance = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
-    const accounts = await ctx.db
-      .query('accounts')
+    // Use overallBalance from user_preferences as the starting point
+    const prefs = await ctx.db
+      .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
-      .filter((q) => q.neq(q.field('deleted'), true))
-      .collect();
+      .first();
 
-    const initialBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
+    const initialBalance = prefs?.overallBalance ?? 0;
 
-    // Sum all non-deleted transactions for this user
+    // Add all transactions on top
     const transactions = await ctx.db
       .query('transactions')
       .withIndex('by_user', (q) => q.eq('userId', userId))

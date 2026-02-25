@@ -43,16 +43,16 @@ export const addContribution = mutation({
     const goal = await ctx.db.get(goalId);
     if (!goal) throw new Error('Goal not found');
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    // Create an expense transaction — deducts from balance
-    await ctx.db.insert('transactions', {
-      userId,
-      title: `Saved for ${goal.name}`,
-      amount: -amount,
-      note: '',
-      date: today,
-    });
+    // Deduct directly from overallBalance — no fake transaction
+    const prefs = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (prefs) {
+      await ctx.db.patch(prefs._id, {
+        overallBalance: (prefs.overallBalance ?? 0) - amount,
+      });
+    }
 
     // Update goal saved amount
     await ctx.db.patch(goalId, { saved: goal.saved + amount });
@@ -76,16 +76,17 @@ export const remove = mutation({
     const goal = await ctx.db.get(id);
     if (!goal) return;
 
-    // Refund whatever was saved back to balance as an income transaction
+    // Refund saved amount directly to overallBalance — no fake transaction
     if (goal.saved > 0) {
-      const today = new Date().toISOString().slice(0, 10);
-      await ctx.db.insert('transactions', {
-        userId,
-        title: `Goal cancelled: ${goal.name}`,
-        amount: goal.saved,
-        note: '',
-        date: today,
-      });
+      const prefs = await ctx.db
+        .query('user_preferences')
+        .withIndex('by_user', (q) => q.eq('userId', userId))
+        .first();
+      if (prefs) {
+        await ctx.db.patch(prefs._id, {
+          overallBalance: (prefs.overallBalance ?? 0) + goal.saved,
+        });
+      }
     }
 
     await ctx.db.delete(id);
