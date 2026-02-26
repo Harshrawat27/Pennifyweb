@@ -87,6 +87,13 @@ export default defineSchema({
     userId: v.string(),
     currency: v.string(),
     overallBalance: v.optional(v.number()),
+    subscriptionStatus: v.optional(v.union(
+      v.literal('none'),
+      v.literal('monthly'),
+      v.literal('yearly'),
+      v.literal('expired')
+    )),
+    subscriptionExpiresAt: v.optional(v.string()), // ISO date string
     trackIncome: v.optional(v.boolean()),
     notificationsEnabled: v.optional(v.boolean()),
     dailyReminder: v.optional(v.boolean()),
