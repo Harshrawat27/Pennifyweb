@@ -18,6 +18,7 @@ export const deleteUserData = mutation({
       "settings",
       "user_preferences",
       "monthly_budgets",
+      "recurring_payments",
     ] as const;
 
     for (const table of tables) {

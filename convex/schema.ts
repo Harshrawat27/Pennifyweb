@@ -111,6 +111,17 @@ export default defineSchema({
     // updatedAt: v.optional(v.string()),
   }).index('by_user', ['userId']),
 
+  recurring_payments: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    amount: v.number(),
+    frequency: v.union(v.literal('monthly'), v.literal('yearly')),
+    categoryId: v.optional(v.id('categories')),
+    isPaused: v.optional(v.boolean()),
+    nextDue: v.string(),         // YYYY-MM-DD — next date to create a transaction
+    lastProcessed: v.optional(v.string()), // YYYY-MM-DD — last time transaction was created
+  }).index('by_user', ['userId']),
+
   monthly_budgets: defineTable({
     userId: v.string(),
     month: v.string(), // YYYY-MM

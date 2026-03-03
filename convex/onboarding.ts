@@ -50,6 +50,15 @@ export const commitAll = mutation({
         color: v.string(),
       })
     ),
+    recurringPayments: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          amount: v.number(),
+          frequency: v.union(v.literal('monthly'), v.literal('yearly')),
+        })
+      )
+    ),
     monthlyBudget: v.optional(
       v.object({
         month: v.string(),
@@ -91,7 +100,35 @@ export const commitAll = mutation({
       await ctx.db.insert('goals', { userId, ...goal, saved: 0 });
     }
 
-    // 5. Create monthly budget
+    // 5. Create recurring payments
+    if (args.recurringPayments && args.recurringPayments.length > 0) {
+      const today = new Date().toISOString().slice(0, 10);
+      const [y, m] = today.split('-').map(Number);
+      const nextMonthFirst =
+        m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+      const nextYearToday = `${y + 1}-${String(m).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+
+      for (const p of args.recurringPayments) {
+        await ctx.db.insert('recurring_payments', {
+          userId,
+          name: p.name,
+          amount: p.amount,
+          frequency: p.frequency,
+          isPaused: false,
+          nextDue: p.frequency === 'monthly' ? nextMonthFirst : nextYearToday,
+        });
+        // Create transaction for current month on the day account is set up
+        await ctx.db.insert('transactions', {
+          userId,
+          title: p.name,
+          amount: -p.amount,
+          note: 'Recurring payment',
+          date: today,
+        });
+      }
+    }
+
+    // 6. Create monthly budget
     if (args.monthlyBudget && args.monthlyBudget.budget > 0) {
       await ctx.db.insert('monthly_budgets', {
         userId,

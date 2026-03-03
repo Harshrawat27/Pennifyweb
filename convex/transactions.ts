@@ -160,6 +160,43 @@ export const remove = mutation({
   },
 });
 
+export const getById = query({
+  args: { id: v.id('transactions') },
+  handler: async (ctx, { id }) => {
+    const tx = await ctx.db.get(id);
+    if (!tx) return null;
+
+    let categoryName = 'Unknown';
+    let categoryIcon = 'tag';
+    if (tx.categoryId) {
+      const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+      if (cat) { categoryName = cat.name; categoryIcon = cat.icon; }
+    }
+    let accountName = '';
+    let accountIcon = '';
+    if (tx.accountId) {
+      const acc = await ctx.db.get(tx.accountId as Id<'accounts'>);
+      if (acc) { accountName = acc.name; accountIcon = acc.icon; }
+    }
+    return { ...tx, categoryName, categoryIcon, accountName, accountIcon };
+  },
+});
+
+export const update = mutation({
+  args: {
+    id: v.id('transactions'),
+    title: v.string(),
+    amount: v.number(),
+    note: v.string(),
+    date: v.string(),
+    categoryId: v.id('categories'),
+    accountId: v.id('accounts'),
+  },
+  handler: async (ctx, { id, title, amount, note, date, categoryId, accountId }) => {
+    await ctx.db.patch(id, { title, amount, note, date, categoryId, accountId });
+  },
+});
+
 // Generic stats for any date range — used by week view
 export const getStatsForPeriod = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
