@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
 function nextMonthStart(month: string): string {
@@ -140,7 +140,7 @@ export const create = mutation({
     amount: v.number(),
     note: v.string(),
     date: v.string(),
-    categoryId: v.id('categories'),
+    categoryId: v.optional(v.id('categories')),
     accountId: v.id('accounts'),
   },
   handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId }) => {
@@ -153,6 +153,13 @@ export const create = mutation({
       categoryId,
       accountId,
     });
+  },
+});
+
+export const setCategoryId = internalMutation({
+  args: { id: v.id('transactions'), categoryId: v.id('categories') },
+  handler: async (ctx, { id, categoryId }) => {
+    await ctx.db.patch(id, { categoryId });
   },
 });
 
