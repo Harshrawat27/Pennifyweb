@@ -6,12 +6,8 @@ export default defineSchema({
     userId: v.string(),
     name: v.string(),
     type: v.string(),
-    // balance: v.optional(v.number()), // initial/starting balance
     icon: v.string(),
-    // Legacy fields (kept for backward compat with old sync data)
-    // localId: v.optional(v.string()),
-    // updatedAt: v.optional(v.string()),
-    // deleted: v.optional(v.boolean()),
+    isActive: v.optional(v.boolean()), // undefined or true = active, false = inactive
   }).index('by_user', ['userId']),
 
   categories: defineTable({
@@ -35,6 +31,7 @@ export default defineSchema({
     // Convex-native refs (new architecture)
     categoryId: v.optional(v.id('categories')),
     accountId: v.optional(v.id('accounts')),
+    paidFromGoalId: v.optional(v.id('goals')), // set when paid via sinking fund goal
     // Legacy refs (old SQLite sync)
     // categoryLocalId: v.optional(v.string()),
     // accountLocalId: v.optional(v.string()),
@@ -68,10 +65,10 @@ export default defineSchema({
     color: v.string(),
     status: v.optional(v.union(v.literal('active'), v.literal('completed'))),
     completedAt: v.optional(v.string()), // YYYY-MM-DD
-    // Legacy
-    // localId: v.optional(v.string()),
-    // updatedAt: v.optional(v.string()),
-    // deleted: v.optional(v.boolean()),
+    // Sinking fund fields
+    isRecurring: v.optional(v.boolean()),                        // true = auto-resets after payment
+    linkedRecurringId: v.optional(v.id('recurring_payments')),  // linked yearly recurring
+    paymentDue: v.optional(v.boolean()),                        // true = cron flagged as underfunded
   }).index('by_user', ['userId']),
 
   settings: defineTable({
@@ -120,7 +117,16 @@ export default defineSchema({
     isPaused: v.optional(v.boolean()),
     nextDue: v.string(),         // YYYY-MM-DD — next date to create a transaction
     lastProcessed: v.optional(v.string()), // YYYY-MM-DD — last time transaction was created
+    linkedGoalId: v.optional(v.id('goals')), // linked sinking fund goal
   }).index('by_user', ['userId']),
+
+  goal_contributions: defineTable({
+    goalId: v.id('goals'),
+    userId: v.string(),
+    amount: v.number(),
+    date: v.string(), // YYYY-MM-DD
+    note: v.optional(v.string()),
+  }).index('by_goal', ['goalId']),
 
   monthly_budgets: defineTable({
     userId: v.string(),

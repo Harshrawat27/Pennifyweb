@@ -2,12 +2,21 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
 export const list = query({
-  args: { userId: v.string() },
-  handler: async (ctx, { userId }) => {
-    return await ctx.db
+  args: { userId: v.string(), activeOnly: v.optional(v.boolean()) },
+  handler: async (ctx, { userId, activeOnly }) => {
+    const accounts = await ctx.db
       .query('accounts')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
+    if (activeOnly) return accounts.filter((a) => a.isActive !== false);
+    return accounts;
+  },
+});
+
+export const toggleActive = mutation({
+  args: { id: v.id('accounts'), isActive: v.boolean() },
+  handler: async (ctx, { id, isActive }) => {
+    await ctx.db.patch(id, { isActive });
   },
 });
 

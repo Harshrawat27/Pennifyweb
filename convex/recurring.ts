@@ -1,5 +1,6 @@
 import { v } from 'convex/values';
 import { internalMutation, mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
 
 // ── Date helpers ────────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ export const create = mutation({
       isPaused: false,
       nextDue,
     });
-    // Create transaction for current month on the day it's added
+    // Create transaction for current month/year on the day it's added
     await ctx.db.insert('transactions', {
       userId,
       title: name,
@@ -62,6 +63,52 @@ export const create = mutation({
       date: today,
       ...(categoryId ? { categoryId } : {}),
     });
+  },
+});
+
+// Creates a yearly recurring payment AND a linked sinking fund goal atomically.
+// No immediate transaction — the goal handles payment when funded.
+export const createLinkedSinkingFund = mutation({
+  args: {
+    userId: v.string(),
+    name: v.string(),
+    amount: v.number(),
+    categoryId: v.optional(v.id('categories')),
+    goalIcon: v.string(),
+    goalColor: v.string(),
+  },
+  handler: async (ctx, { userId, name, amount, categoryId, goalIcon, goalColor }) => {
+    const today = todayString();
+    const nextDue = samedayNextYear(today);
+
+    // Insert recurring first (no linkedGoalId yet)
+    const recurringId = await ctx.db.insert('recurring_payments', {
+      userId,
+      name,
+      amount,
+      frequency: 'yearly',
+      isPaused: false,
+      nextDue,
+      ...(categoryId ? { categoryId } : {}),
+    });
+
+    // Insert goal linked to the recurring
+    const goalId = await ctx.db.insert('goals', {
+      userId,
+      name,
+      icon: goalIcon,
+      target: amount,
+      saved: 0,
+      color: goalColor,
+      status: 'active',
+      isRecurring: true,
+      linkedRecurringId: recurringId,
+    });
+
+    // Link recurring back to goal
+    await ctx.db.patch(recurringId, { linkedGoalId: goalId });
+
+    return { recurringId, goalId };
   },
 });
 
@@ -77,6 +124,17 @@ export const togglePause = mutation({
 export const remove = mutation({
   args: { id: v.id('recurring_payments') },
   handler: async (ctx, { id }) => {
+    const payment = await ctx.db.get(id);
+    if (!payment) return;
+
+    // Clear linkedRecurringId on the linked goal so it becomes a standalone goal
+    if (payment.linkedGoalId) {
+      await ctx.db.patch(payment.linkedGoalId, {
+        linkedRecurringId: undefined,
+        paymentDue: false,
+      });
+    }
+
     await ctx.db.delete(id);
   },
 });
@@ -95,7 +153,35 @@ export const processMonthly = internalMutation({
       if (payment.isPaused === true) continue;
       if (payment.nextDue > today) continue;
 
-      // Create the expense transaction
+      // ── Yearly sinking fund payments ──────────────────────────
+      if (payment.frequency === 'yearly' && payment.linkedGoalId) {
+        const goal = await ctx.db.get(payment.linkedGoalId);
+
+        if (goal && goal.saved >= payment.amount) {
+          // Fully funded — auto-pay
+          await ctx.db.insert('transactions', {
+            userId: payment.userId,
+            title: payment.name,
+            amount: -payment.amount,
+            note: 'Paid from savings goal',
+            date: today,
+            paidFromGoalId: payment.linkedGoalId,
+            ...(payment.categoryId ? { categoryId: payment.categoryId } : {}),
+          });
+          // Reset goal for next year
+          await ctx.db.patch(payment.linkedGoalId, { saved: 0, paymentDue: false });
+        } else if (goal) {
+          // Underfunded — flag the goal, do not create transaction
+          await ctx.db.patch(payment.linkedGoalId, { paymentDue: true });
+        }
+
+        // Advance nextDue regardless (user handles manually if underfunded)
+        const nextDue = samedayNextYear(payment.nextDue);
+        await ctx.db.patch(payment._id, { nextDue, lastProcessed: today });
+        continue;
+      }
+
+      // ── Regular monthly/yearly payments ──────────────────────
       await ctx.db.insert('transactions', {
         userId: payment.userId,
         title: payment.name,
@@ -105,7 +191,6 @@ export const processMonthly = internalMutation({
         ...(payment.categoryId ? { categoryId: payment.categoryId } : {}),
       });
 
-      // Advance nextDue
       const nextDue =
         payment.frequency === 'monthly'
           ? firstOfNextMonth(payment.nextDue)

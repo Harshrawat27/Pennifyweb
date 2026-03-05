@@ -64,6 +64,7 @@ export const getMonthlyStats = query({
     let income = 0;
     let expenses = 0;
     for (const tx of txs) {
+      if (tx.paidFromGoalId) continue; // exclude goal-funded payments from budget stats
       if (tx.amount > 0) income += tx.amount;
       else expenses += Math.abs(tx.amount);
     }
@@ -88,6 +89,7 @@ export const getCategoryBreakdown = query({
     const catMap = new Map<string, { name: string; icon: string; amount: number }>();
 
     for (const tx of txs) {
+      if (tx.paidFromGoalId) continue; // exclude goal-funded payments
       if (!tx.categoryId) continue;
       const catId = tx.categoryId.toString();
       if (!catMap.has(catId)) {
@@ -121,6 +123,7 @@ export const getDailySpending = query({
 
     const dayMap = new Map<string, number>();
     for (const tx of txs) {
+      if (tx.paidFromGoalId) continue; // exclude goal-funded payments
       dayMap.set(tx.date, (dayMap.get(tx.date) ?? 0) + Math.abs(tx.amount));
     }
 
@@ -214,6 +217,7 @@ export const getStatsForPeriod = query({
     const catMap = new Map<string, { name: string; icon: string; amount: number }>();
 
     for (const tx of txs) {
+      if (tx.paidFromGoalId) continue; // exclude goal-funded payments from budget stats
       if (tx.amount > 0) {
         income += tx.amount;
       } else {
