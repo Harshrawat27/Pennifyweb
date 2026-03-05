@@ -19,6 +19,12 @@ function todayString(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function prevMonthString(yyyymm: string): string {
+  const [y, m] = yyyymm.split('-').map(Number);
+  if (m === 1) return `${y - 1}-12`;
+  return `${y}-${String(m - 1).padStart(2, '0')}`;
+}
+
 // ── Queries ─────────────────────────────────────────────────────
 
 export const list = query({
@@ -197,6 +203,31 @@ export const processMonthly = internalMutation({
           : samedayNextYear(payment.nextDue);
 
       await ctx.db.patch(payment._id, { nextDue, lastProcessed: today });
+    }
+
+    // ── Carry forward monthly budgets ──────────────────────────
+    const currentMonth = today.slice(0, 7); // 'YYYY-MM'
+    const previousMonth = prevMonthString(currentMonth);
+
+    const prevBudgets = await ctx.db
+      .query('monthly_budgets')
+      .filter((q) => q.eq(q.field('month'), previousMonth))
+      .collect();
+
+    for (const pb of prevBudgets) {
+      const existing = await ctx.db
+        .query('monthly_budgets')
+        .withIndex('by_user_month', (q) =>
+          q.eq('userId', pb.userId).eq('month', currentMonth)
+        )
+        .first();
+      if (!existing) {
+        await ctx.db.insert('monthly_budgets', {
+          userId: pb.userId,
+          month: currentMonth,
+          budget: pb.budget,
+        });
+      }
     }
   },
 });
