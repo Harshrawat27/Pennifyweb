@@ -6,7 +6,7 @@ export const categorizeTransactions = action({
   args: {
     userId: v.string(),
     transactions: v.array(
-      v.object({ id: v.string(), title: v.string() })
+      v.object({ id: v.string(), title: v.string(), isExpense: v.boolean() })
     ),
   },
   handler: async (ctx, { userId, transactions }) => {
@@ -22,12 +22,20 @@ export const categorizeTransactions = action({
     const categories = await ctx.runQuery(api.categories.list, { userId });
     if (!categories || categories.length === 0) return;
 
-    const categoryNames = categories.map((c) => c.name);
-    const txList = transactions.map((t, i) => `${i + 1}. "${t.title}"`).join('\n');
+    const expenseCategories = categories.filter((c) => c.type === 'expense').map((c) => c.name);
+    const incomeCategories = categories.filter((c) => c.type === 'income').map((c) => c.name);
+    const txList = transactions
+      .map((t, i) => `${i + 1}. "${t.title}" (${t.isExpense ? 'expense' : 'income'})`)
+      .join('\n');
 
-    const prompt = `You are a personal finance categorizer. Assign each transaction the most appropriate category from the provided list.
+    const prompt = `You are a personal finance categorizer. Assign each transaction the most appropriate category.
 
-Available categories: ${categoryNames.join(', ')}
+Expense categories: ${expenseCategories.join(', ')}
+Income categories: ${incomeCategories.join(', ')}
+
+Rules:
+- For expense transactions, only pick from expense categories
+- For income transactions, only pick from income categories
 
 Transactions:
 ${txList}
@@ -39,6 +47,9 @@ Respond with ONLY a JSON object in this exact format:
     {"index": 2, "category": "exact category name or null"}
   ]
 }`;
+
+    console.log('[categorize] transactions received:', transactions.map(t => `${t.title}(${t.isExpense ? 'exp' : 'inc'})`));
+    console.log('[categorize] expense categories:', expenseCategories, '| income:', incomeCategories);
 
     let results: Array<{ index: number; category: string | null }>;
     try {
@@ -66,6 +77,7 @@ Respond with ONLY a JSON object in this exact format:
       if (!content) return;
 
       const parsed = JSON.parse(content);
+      console.log('[categorize] OpenAI raw results:', JSON.stringify(parsed));
       results = parsed.results;
       if (!Array.isArray(results)) return;
     } catch (e) {
@@ -84,6 +96,7 @@ Respond with ONLY a JSON object in this exact format:
       const tx = transactions[result.index - 1];
       if (!tx) continue;
       const catId = catMap.get(result.category.toLowerCase());
+      console.log('[categorize] result:', result.index, result.category, '→ catId:', catId, 'tx:', tx?.title);
       if (!catId) continue;
       try {
         await ctx.runMutation(internal.transactions.setCategoryId, {
