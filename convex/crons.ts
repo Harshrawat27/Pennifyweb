@@ -3,10 +3,12 @@ import { internal } from './_generated/api';
 
 const crons = cronJobs();
 
-// Run on the 1st of every month at 00:05 UTC
-crons.monthly(
+// Run every day at 00:05 UTC
+// - Processes recurring payments due today (respects per-payment billingDay)
+// - On 1st of month: carries forward monthly budgets to new month
+crons.daily(
   'process recurring payments',
-  { day: 1, hourUTC: 0, minuteUTC: 5 },
+  { hourUTC: 0, minuteUTC: 5 },
   internal.recurring.processMonthly,
   {}
 );

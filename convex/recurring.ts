@@ -4,6 +4,34 @@ import type { Id } from './_generated/dataModel';
 
 // ── Date helpers ────────────────────────────────────────────────
 
+function daysInMonth(year: number, month: number): number {
+  return new Date(year, month, 0).getDate();
+}
+
+/** Next due date for a monthly payment with a specific billing day. */
+function nextDueForBillingDay(billingDay: number, fromDate: string): string {
+  const [y, m] = fromDate.split('-').map(Number);
+  const nextMonth = m === 12 ? 1 : m + 1;
+  const nextYear = m === 12 ? y + 1 : y;
+  const effectiveDay = Math.min(billingDay, daysInMonth(nextYear, nextMonth));
+  return `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(effectiveDay).padStart(2, '0')}`;
+}
+
+/** Initial nextDue when creating a payment: next future occurrence of billingDay. */
+function initialNextDue(billingDay: number, today: string): string {
+  const [y, m, d] = today.split('-').map(Number);
+  const effectiveDayThisMonth = Math.min(billingDay, daysInMonth(y, m));
+  if (effectiveDayThisMonth > d) {
+    // billing day is still coming this month
+    return `${y}-${String(m).padStart(2, '0')}-${String(effectiveDayThisMonth).padStart(2, '0')}`;
+  }
+  // already passed — use next month
+  const nextMonth = m === 12 ? 1 : m + 1;
+  const nextYear = m === 12 ? y + 1 : y;
+  const effectiveDayNextMonth = Math.min(billingDay, daysInMonth(nextYear, nextMonth));
+  return `${nextYear}-${String(nextMonth).padStart(2, '0')}-${String(effectiveDayNextMonth).padStart(2, '0')}`;
+}
+
 function firstOfNextMonth(from: string): string {
   const [y, m] = from.split('-').map(Number);
   if (m === 12) return `${y + 1}-01-01`;
@@ -46,21 +74,27 @@ export const create = mutation({
     amount: v.number(),
     frequency: v.union(v.literal('monthly'), v.literal('yearly')),
     categoryId: v.optional(v.id('categories')),
+    billingDay: v.optional(v.number()),
+    purchasedAt: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, name, amount, frequency, categoryId }) => {
+  handler: async (ctx, { userId, name, amount, frequency, categoryId, billingDay, purchasedAt }) => {
     const today = todayString();
     const nextDue =
-      frequency === 'monthly' ? firstOfNextMonth(today) : samedayNextYear(today);
-    await ctx.db.insert('recurring_payments', {
+      frequency === 'monthly'
+        ? billingDay ? initialNextDue(billingDay, today) : firstOfNextMonth(today)
+        : samedayNextYear(today);
+    const id = await ctx.db.insert('recurring_payments', {
       userId,
       name,
       amount,
       frequency,
       categoryId,
+      billingDay,
+      purchasedAt,
       isPaused: false,
       nextDue,
     });
-    // Create transaction for current month/year on the day it's added
+    // Create transaction for today on the day it's added
     await ctx.db.insert('transactions', {
       userId,
       title: name,
@@ -69,6 +103,7 @@ export const create = mutation({
       date: today,
       ...(categoryId ? { categoryId } : {}),
     });
+    return id;
   },
 });
 
@@ -199,7 +234,9 @@ export const processMonthly = internalMutation({
 
       const nextDue =
         payment.frequency === 'monthly'
-          ? firstOfNextMonth(payment.nextDue)
+          ? payment.billingDay
+            ? nextDueForBillingDay(payment.billingDay, payment.nextDue)
+            : firstOfNextMonth(payment.nextDue)
           : samedayNextYear(payment.nextDue);
 
       await ctx.db.patch(payment._id, { nextDue, lastProcessed: today });

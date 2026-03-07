@@ -67,9 +67,9 @@ export default defineSchema({
     status: v.optional(v.union(v.literal('active'), v.literal('completed'))),
     completedAt: v.optional(v.string()), // YYYY-MM-DD
     // Sinking fund fields
-    isRecurring: v.optional(v.boolean()),                        // true = auto-resets after payment
-    linkedRecurringId: v.optional(v.id('recurring_payments')),  // linked yearly recurring
-    paymentDue: v.optional(v.boolean()),                        // true = cron flagged as underfunded
+    isRecurring: v.optional(v.boolean()), // true = auto-resets after payment
+    linkedRecurringId: v.optional(v.id('recurring_payments')), // linked yearly recurring
+    paymentDue: v.optional(v.boolean()), // true = cron flagged as underfunded
   }).index('by_user', ['userId']),
 
   settings: defineTable({
@@ -85,12 +85,14 @@ export default defineSchema({
     userId: v.string(),
     currency: v.string(),
     overallBalance: v.optional(v.number()),
-    subscriptionStatus: v.optional(v.union(
-      v.literal('none'),
-      v.literal('monthly'),
-      v.literal('yearly'),
-      v.literal('expired')
-    )),
+    subscriptionStatus: v.optional(
+      v.union(
+        v.literal('none'),
+        v.literal('monthly'),
+        v.literal('yearly'),
+        v.literal('expired')
+      )
+    ),
     subscriptionExpiresAt: v.optional(v.string()), // ISO date string
     trackIncome: v.optional(v.boolean()),
     notificationsEnabled: v.optional(v.boolean()),
@@ -114,9 +116,11 @@ export default defineSchema({
     name: v.string(),
     amount: v.number(),
     frequency: v.union(v.literal('monthly'), v.literal('yearly')),
+    billingDay: v.optional(v.number()),      // 1-31: day extracted from purchasedAt, used for recurring logic
+    purchasedAt: v.optional(v.string()),     // YYYY-MM-DD: full date user purchased (display only)
     categoryId: v.optional(v.id('categories')),
     isPaused: v.optional(v.boolean()),
-    nextDue: v.string(),         // YYYY-MM-DD — next date to create a transaction
+    nextDue: v.string(), // YYYY-MM-DD — next date to create a transaction
     lastProcessed: v.optional(v.string()), // YYYY-MM-DD — last time transaction was created
     linkedGoalId: v.optional(v.id('goals')), // linked sinking fund goal
   }).index('by_user', ['userId']),

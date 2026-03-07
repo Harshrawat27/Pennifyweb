@@ -56,6 +56,8 @@ export const commitAll = mutation({
           name: v.string(),
           amount: v.number(),
           frequency: v.union(v.literal('monthly'), v.literal('yearly')),
+          billingDay: v.optional(v.number()),
+          purchasedAt: v.optional(v.string()),
         })
       )
     ),
@@ -103,10 +105,20 @@ export const commitAll = mutation({
     // 5. Create recurring payments
     if (args.recurringPayments && args.recurringPayments.length > 0) {
       const today = new Date().toISOString().slice(0, 10);
-      const [y, m] = today.split('-').map(Number);
-      const nextMonthFirst =
-        m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
-      const nextYearToday = `${y + 1}-${String(m).padStart(2, '0')}-${String(new Date().getDate()).padStart(2, '0')}`;
+      const [y, m, d] = today.split('-').map(Number);
+      const nextYearToday = `${y + 1}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+
+      function daysInMonth(year: number, month: number) { return new Date(year, month, 0).getDate(); }
+      function nextDueMonthly(billingDay: number | undefined): string {
+        if (!billingDay) {
+          return m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+        }
+        const effDay = Math.min(billingDay, daysInMonth(y, m));
+        if (effDay > d) return `${y}-${String(m).padStart(2, '0')}-${String(effDay).padStart(2, '0')}`;
+        const nm = m === 12 ? 1 : m + 1;
+        const ny = m === 12 ? y + 1 : y;
+        return `${ny}-${String(nm).padStart(2, '0')}-${String(Math.min(billingDay, daysInMonth(ny, nm))).padStart(2, '0')}`;
+      }
 
       for (const p of args.recurringPayments) {
         await ctx.db.insert('recurring_payments', {
@@ -114,8 +126,10 @@ export const commitAll = mutation({
           name: p.name,
           amount: p.amount,
           frequency: p.frequency,
+          billingDay: p.billingDay,
+          purchasedAt: p.purchasedAt,
           isPaused: false,
-          nextDue: p.frequency === 'monthly' ? nextMonthFirst : nextYearToday,
+          nextDue: p.frequency === 'monthly' ? nextDueMonthly(p.billingDay) : nextYearToday,
         });
         // Create transaction for current month on the day account is set up
         await ctx.db.insert('transactions', {
