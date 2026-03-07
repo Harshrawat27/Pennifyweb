@@ -142,8 +142,9 @@ export const create = mutation({
     date: v.string(),
     categoryId: v.optional(v.id('categories')),
     accountId: v.id('accounts'),
+    receiptUrl: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId }) => {
+  handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId, receiptUrl }) => {
     return await ctx.db.insert('transactions', {
       userId,
       title,
@@ -152,6 +153,7 @@ export const create = mutation({
       date,
       categoryId,
       accountId,
+      receiptUrl,
     });
   },
 });
