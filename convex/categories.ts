@@ -29,15 +29,19 @@ export const create = mutation({
     icon: v.string(),
     type: v.string(),
     color: v.string(),
+    parentCategory: v.optional(v.string()),
   },
-  handler: async (ctx, { userId, name, icon, type, color }) => {
-    return await ctx.db.insert('categories', { userId, name, icon, type, color });
+  handler: async (ctx, { userId, name, icon, type, color, parentCategory }) => {
+    return await ctx.db.insert('categories', { userId, name, icon, type, color, parentCategory, isDefault: false });
   },
 });
 
 export const remove = mutation({
   args: { id: v.id('categories') },
   handler: async (ctx, { id }) => {
+    const cat = await ctx.db.get(id);
+    if (!cat) return;
+    if (cat.isDefault) throw new Error('Cannot delete a default category');
     await ctx.db.delete(id);
   },
 });

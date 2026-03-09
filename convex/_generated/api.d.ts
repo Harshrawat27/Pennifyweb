@@ -13,6 +13,7 @@ import type * as budgets from "../budgets.js";
 import type * as categories from "../categories.js";
 import type * as categorize from "../categorize.js";
 import type * as crons from "../crons.js";
+import type * as defaultCategories from "../defaultCategories.js";
 import type * as goals from "../goals.js";
 import type * as http from "../http.js";
 import type * as monthlyBudgets from "../monthlyBudgets.js";
@@ -34,6 +35,7 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   categorize: typeof categorize;
   crons: typeof crons;
+  defaultCategories: typeof defaultCategories;
   goals: typeof goals;
   http: typeof http;
   monthlyBudgets: typeof monthlyBudgets;

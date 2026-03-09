@@ -16,10 +16,8 @@ export default defineSchema({
     icon: v.string(),
     type: v.string(), // 'expense' | 'income'
     color: v.string(),
-    // Legacy
-    // localId: v.optional(v.string()),
-    // updatedAt: v.optional(v.string()),
-    // deleted: v.optional(v.boolean()),
+    parentCategory: v.optional(v.string()), // main group e.g. 'Food & Drink'
+    isDefault: v.optional(v.boolean()),     // true = cannot be deleted by user
   }).index('by_user', ['userId']),
 
   transactions: defineTable({

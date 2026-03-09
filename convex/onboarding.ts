@@ -1,22 +1,6 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
-
-const CATEGORY_ICONS: Record<string, string> = {
-  'Food & Dining': 'shopping-bag',
-  'Transport': 'navigation',
-  'Entertainment': 'play-circle',
-  'Shopping': 'shopping-cart',
-  'Bills & Utilities': 'zap',
-  'Health': 'heart',
-  'Education': 'book',
-  'Subscriptions': 'refresh-cw',
-  'Groceries': 'package',
-  'Rent': 'home',
-  'Insurance': 'shield',
-  'Personal Care': 'smile',
-  'Gifts': 'gift',
-  'Travel': 'map',
-};
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, PARENT_CATEGORY_COLORS } from './defaultCategories';
 
 /**
  * Batch commit all onboarding data to Convex in one mutation.
@@ -40,8 +24,14 @@ export const commitAll = mutation({
         icon: v.string(),
       })
     ),
-    selectedCategories: v.array(v.string()),
-    customCategories: v.array(v.string()),
+    customCategories: v.optional(
+      v.array(
+        v.object({
+          name: v.string(),
+          parentCategory: v.optional(v.string()),
+        })
+      )
+    ), // user-added categories beyond defaults
     goals: v.array(
       v.object({
         name: v.string(),
@@ -79,23 +69,46 @@ export const commitAll = mutation({
       await ctx.db.insert('accounts', { userId, name: acc.name, type: acc.type, icon: acc.icon });
     }
 
-    // 3. Create categories (selected + custom + built-in income)
-    const allCategoryNames = [...args.selectedCategories, ...args.customCategories];
-    for (const name of allCategoryNames) {
-      const icon = CATEGORY_ICONS[name] ?? 'tag';
+    // 3. Create all 40 default expense categories
+    for (const cat of DEFAULT_EXPENSE_CATEGORIES) {
       await ctx.db.insert('categories', {
         userId,
-        name,
-        icon,
+        name: cat.name,
+        icon: cat.icon,
         type: 'expense',
-        color: '#525252',
+        color: cat.color,
+        parentCategory: cat.parentCategory,
+        isDefault: true,
       });
     }
 
-    // Always add income categories
-    await ctx.db.insert('categories', { userId, name: 'Salary', icon: 'briefcase', type: 'income', color: '#059669' });
-    await ctx.db.insert('categories', { userId, name: 'Freelance', icon: 'code', type: 'income', color: '#2563EB' });
-    await ctx.db.insert('categories', { userId, name: 'Other Income', icon: 'plus-circle', type: 'income', color: '#7C3AED' });
+    // Default income categories
+    for (const cat of DEFAULT_INCOME_CATEGORIES) {
+      await ctx.db.insert('categories', {
+        userId,
+        name: cat.name,
+        icon: cat.icon,
+        type: 'income',
+        color: cat.color,
+        isDefault: true,
+      });
+    }
+
+    // User's custom categories (added during onboarding)
+    for (const cat of (args.customCategories ?? [])) {
+      const color = cat.parentCategory
+        ? (PARENT_CATEGORY_COLORS[cat.parentCategory] ?? '#6B7280')
+        : '#6B7280';
+      await ctx.db.insert('categories', {
+        userId,
+        name: cat.name,
+        icon: 'tag',
+        type: 'expense',
+        color,
+        parentCategory: cat.parentCategory,
+        isDefault: false,
+      });
+    }
 
     // 4. Create goals
     for (const goal of args.goals) {
