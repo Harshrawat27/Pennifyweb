@@ -96,6 +96,7 @@ export default defineSchema({
     notificationsEnabled: v.optional(v.boolean()),
     dailyReminder: v.optional(v.boolean()),
     weeklyReport: v.optional(v.boolean()),
+    hideBalance: v.optional(v.boolean()),
     // Legacy fields (backward compat)
     // localId: v.optional(v.string()),
     email: v.optional(v.string()),

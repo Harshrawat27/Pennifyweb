@@ -116,6 +116,7 @@ export const commitAll = mutation({
     }
 
     // 5. Create recurring payments
+    const createdRecurring: Array<{ id: string; name: string }> = [];
     if (args.recurringPayments && args.recurringPayments.length > 0) {
       const today = new Date().toISOString().slice(0, 10);
       const [y, m, d] = today.split('-').map(Number);
@@ -134,7 +135,7 @@ export const commitAll = mutation({
       }
 
       for (const p of args.recurringPayments) {
-        await ctx.db.insert('recurring_payments', {
+        const id = await ctx.db.insert('recurring_payments', {
           userId,
           name: p.name,
           amount: p.amount,
@@ -144,6 +145,7 @@ export const commitAll = mutation({
           isPaused: false,
           nextDue: p.frequency === 'monthly' ? nextDueMonthly(p.billingDay) : nextYearToday,
         });
+        createdRecurring.push({ id, name: p.name });
         // Only create a transaction now if the billing day has already passed
         // (or is today), or no billing day was set. If the billing day is still
         // coming this month, the daily cron will handle it on the correct date.
@@ -168,5 +170,7 @@ export const commitAll = mutation({
         budget: args.monthlyBudget.budget,
       });
     }
+
+    return { recurringPayments: createdRecurring };
   },
 });

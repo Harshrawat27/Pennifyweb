@@ -79,6 +79,17 @@ export const updateSubscription = mutation({
   },
 });
 
+export const updateHideBalance = mutation({
+  args: { userId: v.string(), hideBalance: v.boolean() },
+  handler: async (ctx, { userId, hideBalance }) => {
+    const existing = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (existing) await ctx.db.patch(existing._id, { hideBalance });
+  },
+});
+
 export const updateNotifications = mutation({
   args: {
     userId: v.string(),
