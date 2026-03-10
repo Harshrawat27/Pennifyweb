@@ -31,6 +31,7 @@ export default defineSchema({
     accountId: v.optional(v.id('accounts')),
     paidFromGoalId: v.optional(v.id('goals')), // set when paid via sinking fund goal
     receiptUrl: v.optional(v.string()), // Cloudflare R2 URL for scanned receipt
+    isBookmarked: v.optional(v.boolean()),
     // Legacy refs (old SQLite sync)
     // categoryLocalId: v.optional(v.string()),
     // accountLocalId: v.optional(v.string()),

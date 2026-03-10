@@ -143,8 +143,9 @@ export const create = mutation({
     categoryId: v.optional(v.id('categories')),
     accountId: v.id('accounts'),
     receiptUrl: v.optional(v.string()),
+    isBookmarked: v.optional(v.boolean()),
   },
-  handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId, receiptUrl }) => {
+  handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId, receiptUrl, isBookmarked }) => {
     return await ctx.db.insert('transactions', {
       userId,
       title,
@@ -154,6 +155,7 @@ export const create = mutation({
       categoryId,
       accountId,
       receiptUrl,
+      isBookmarked,
     });
   },
 });
@@ -217,6 +219,43 @@ export const update = mutation({
   },
   handler: async (ctx, { id, title, amount, note, date, categoryId, accountId }) => {
     await ctx.db.patch(id, { title, amount, note, date, categoryId, accountId });
+  },
+});
+
+export const toggleBookmark = mutation({
+  args: { id: v.id('transactions') },
+  handler: async (ctx, { id }) => {
+    const tx = await ctx.db.get(id);
+    if (!tx) return;
+    await ctx.db.patch(id, { isBookmarked: !tx.isBookmarked });
+  },
+});
+
+export const listBookmarked = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .filter((q) => q.eq(q.field('isBookmarked'), true))
+      .collect();
+
+    return await Promise.all(
+      txs.map(async (tx) => {
+        let categoryName = 'Unknown';
+        let categoryIcon = 'tag';
+        if (tx.categoryId) {
+          const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+          if (cat) { categoryName = cat.name; categoryIcon = cat.icon; }
+        }
+        let accountName = '';
+        if (tx.accountId) {
+          const acc = await ctx.db.get(tx.accountId as Id<'accounts'>);
+          if (acc) accountName = acc.name;
+        }
+        return { ...tx, categoryName, categoryIcon, accountName };
+      })
+    );
   },
 });
 
