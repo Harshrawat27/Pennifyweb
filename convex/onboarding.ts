@@ -144,14 +144,19 @@ export const commitAll = mutation({
           isPaused: false,
           nextDue: p.frequency === 'monthly' ? nextDueMonthly(p.billingDay) : nextYearToday,
         });
-        // Create transaction for current month on the day account is set up
-        await ctx.db.insert('transactions', {
-          userId,
-          title: p.name,
-          amount: -p.amount,
-          note: 'Recurring payment',
-          date: today,
-        });
+        // Only create a transaction now if the billing day has already passed
+        // (or is today), or no billing day was set. If the billing day is still
+        // coming this month, the daily cron will handle it on the correct date.
+        const shouldCreateNow = !p.billingDay || p.billingDay <= d;
+        if (shouldCreateNow) {
+          await ctx.db.insert('transactions', {
+            userId,
+            title: p.name,
+            amount: -p.amount,
+            note: 'Recurring payment',
+            date: today,
+          });
+        }
       }
     }
 

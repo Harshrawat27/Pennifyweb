@@ -94,15 +94,21 @@ export const create = mutation({
       isPaused: false,
       nextDue,
     });
-    // Create transaction for today on the day it's added
-    await ctx.db.insert('transactions', {
-      userId,
-      title: name,
-      amount: -amount,
-      note: 'Recurring payment',
-      date: today,
-      ...(categoryId ? { categoryId } : {}),
-    });
+    // Only create a transaction now if the billing day has already passed
+    // (or is today), or no billing day was set. If it's still coming this
+    // month, nextDue is already set correctly and the daily cron handles it.
+    const todayDay = Number(today.slice(8, 10));
+    const shouldCreateNow = !billingDay || billingDay <= todayDay;
+    if (shouldCreateNow) {
+      await ctx.db.insert('transactions', {
+        userId,
+        title: name,
+        amount: -amount,
+        note: 'Recurring payment',
+        date: today,
+        ...(categoryId ? { categoryId } : {}),
+      });
+    }
     return id;
   },
 });
@@ -150,6 +156,13 @@ export const createLinkedSinkingFund = mutation({
     await ctx.db.patch(recurringId, { linkedGoalId: goalId });
 
     return { recurringId, goalId };
+  },
+});
+
+export const updateCategory = mutation({
+  args: { id: v.id('recurring_payments'), categoryId: v.optional(v.id('categories')) },
+  handler: async (ctx, { id, categoryId }) => {
+    await ctx.db.patch(id, { categoryId });
   },
 });
 
@@ -266,5 +279,12 @@ export const processMonthly = internalMutation({
         });
       }
     }
+  },
+});
+
+export const setRecurringCategoryId = internalMutation({
+  args: { id: v.id('recurring_payments'), categoryId: v.id('categories') },
+  handler: async (ctx, { id, categoryId }) => {
+    await ctx.db.patch(id, { categoryId });
   },
 });

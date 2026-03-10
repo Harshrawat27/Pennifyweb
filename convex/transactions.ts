@@ -1,5 +1,5 @@
 import { v } from 'convex/values';
-import { internalMutation, mutation, query } from './_generated/server';
+import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
 
 function nextMonthStart(month: string): string {
@@ -155,6 +155,17 @@ export const create = mutation({
       accountId,
       receiptUrl,
     });
+  },
+});
+
+export const getByTitleAndDate = internalQuery({
+  args: { userId: v.string(), title: v.string(), date: v.string() },
+  handler: async (ctx, { userId, title, date }) => {
+    return await ctx.db
+      .query('transactions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .filter((q) => q.and(q.eq(q.field('title'), title), q.eq(q.field('date'), date)))
+      .collect();
   },
 });
 

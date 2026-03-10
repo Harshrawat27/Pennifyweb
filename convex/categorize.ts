@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { action } from './_generated/server';
 import { api, internal } from './_generated/api';
+import type { Id } from './_generated/dataModel';
 
 export const categorizeTransactions = action({
   args: {
@@ -105,6 +106,88 @@ Respond with ONLY a JSON object in this exact format:
         });
       } catch (e) {
         console.error('[categorize] Failed to patch transaction:', tx.id, e);
+      }
+    }
+  },
+});
+
+export const categorizeRecurringPayment = action({
+  args: {
+    userId: v.string(),
+    recurringPaymentId: v.string(),
+    name: v.string(),
+  },
+  handler: async (ctx, { userId, recurringPaymentId, name }) => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) return;
+
+    const categories = await ctx.runQuery(api.categories.listByType, { userId, type: 'expense' });
+    if (!categories || categories.length === 0) return;
+
+    const categoryNames = categories.map((c: { name: string }) => c.name);
+    const prompt = `You are a personal finance categorizer. Assign the most appropriate expense category to this recurring payment.
+
+Available categories: ${categoryNames.join(', ')}
+
+Recurring payment: "${name}"
+
+Respond with ONLY a JSON object: {"category": "exact category name or null"}`;
+
+    let categoryName: string | null = null;
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+          temperature: 0,
+        }),
+      });
+      if (!response.ok) return;
+      const data = await response.json();
+      const content = data.choices?.[0]?.message?.content;
+      if (!content) return;
+      const parsed = JSON.parse(content);
+      categoryName = parsed.category ?? null;
+    } catch (e) {
+      console.error('[categorize recurring] OpenAI error:', e);
+      return;
+    }
+
+    if (!categoryName) return;
+
+    const catMap = new Map(
+      categories.map((c: { name: string; _id: Id<'categories'> }) => [c.name.toLowerCase(), c._id])
+    );
+    const catId = catMap.get(categoryName.toLowerCase());
+    if (!catId) return;
+
+    // Patch the recurring_payments record
+    await ctx.runMutation(internal.recurring.setRecurringCategoryId, {
+      id: recurringPaymentId as Id<'recurring_payments'>,
+      categoryId: catId,
+    });
+
+    // Patch today's transaction for this payment if one was created immediately
+    const today = new Date().toISOString().slice(0, 10);
+    const txs = await ctx.runQuery(internal.transactions.getByTitleAndDate, {
+      userId,
+      title: name,
+      date: today,
+    });
+    for (const tx of (txs as Array<{ _id: Id<'transactions'> }>)) {
+      try {
+        await ctx.runMutation(internal.transactions.setCategoryId, {
+          id: tx._id,
+          categoryId: catId,
+        });
+      } catch (e) {
+        console.error('[categorize recurring] Failed to patch transaction:', e);
       }
     }
   },
