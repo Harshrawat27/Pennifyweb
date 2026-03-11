@@ -57,6 +57,16 @@ export const commitAll = mutation({
         budget: v.number(),
       })
     ),
+    smartRules: v.optional(
+      v.array(
+        v.object({
+          keyword: v.string(),
+          categoryName: v.string(),
+          categoryIcon: v.string(),
+          categoryColor: v.string(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const { userId } = args;
@@ -169,6 +179,31 @@ export const commitAll = mutation({
         month: args.monthlyBudget.month,
         budget: args.monthlyBudget.budget,
       });
+    }
+
+    // 7. Create smart rules — resolve categoryId by name from the just-inserted categories
+    if (args.smartRules && args.smartRules.length > 0) {
+      const allCategories = await ctx.db
+        .query('categories')
+        .filter((q) => q.eq(q.field('userId'), userId))
+        .collect();
+      const now = new Date().toISOString();
+      for (let i = 0; i < args.smartRules.length; i++) {
+        const rule = args.smartRules[i];
+        const cat = allCategories.find((c) => c.name === rule.categoryName);
+        if (!cat) continue;
+        // Offset createdAt by index to preserve ordering
+        const createdAt = new Date(Date.now() + i).toISOString();
+        await ctx.db.insert('category_rules', {
+          userId,
+          keyword: rule.keyword.trim(),
+          categoryId: cat._id,
+          categoryName: rule.categoryName,
+          categoryIcon: rule.categoryIcon,
+          categoryColor: rule.categoryColor,
+          createdAt,
+        });
+      }
     }
 
     return { recurringPayments: createdRecurring };

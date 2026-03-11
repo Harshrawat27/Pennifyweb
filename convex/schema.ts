@@ -137,11 +137,17 @@ export default defineSchema({
     userId: v.string(),
     month: v.string(), // YYYY-MM
     budget: v.number(),
-    // Legacy
-    // localId: v.optional(v.string()),
-    // updatedAt: v.optional(v.string()),
-    // deleted: v.optional(v.boolean()),
   })
     .index('by_user', ['userId'])
     .index('by_user_month', ['userId', 'month']),
+
+  category_rules: defineTable({
+    userId: v.string(),
+    keyword: v.string(),       // the keyword to match against transaction title
+    categoryId: v.id('categories'),
+    categoryName: v.string(),  // denormalized for fast cache display
+    categoryIcon: v.string(),  // denormalized
+    categoryColor: v.string(), // denormalized
+    createdAt: v.string(),     // ISO string — used for "first match wins" ordering
+  }).index('by_user', ['userId']),
 });
