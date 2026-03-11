@@ -109,6 +109,38 @@ export const getCategoryBreakdown = query({
   },
 });
 
+export const getParentCategoryBreakdown = query({
+  args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
+  handler: async (ctx, { userId, startDate, endDate }) => {
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', startDate).lt('date', endDate)
+      )
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const parentMap = new Map<string, { name: string; color: string; amount: number }>();
+
+    for (const tx of txs) {
+      if (tx.paidFromGoalId) continue;
+      if (!tx.categoryId) continue;
+      const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+      if (!cat) continue;
+      const parentName = cat.parentCategory ?? 'Other';
+      if (!parentMap.has(parentName)) {
+        parentMap.set(parentName, { name: parentName, color: cat.color, amount: 0 });
+      }
+      parentMap.get(parentName)!.amount += Math.abs(tx.amount);
+    }
+
+    const total = [...parentMap.values()].reduce((s, c) => s + c.amount, 0);
+    return [...parentMap.values()]
+      .sort((a, b) => b.amount - a.amount)
+      .map((c) => ({ ...c, percent: total > 0 ? Math.round((c.amount / total) * 100) : 0 }));
+  },
+});
+
 export const getDailySpending = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
