@@ -17,6 +17,7 @@ import type * as defaultCategories from "../defaultCategories.js";
 import type * as goals from "../goals.js";
 import type * as http from "../http.js";
 import type * as monthlyBudgets from "../monthlyBudgets.js";
+import type * as notifications from "../notifications.js";
 import type * as onboarding from "../onboarding.js";
 import type * as preferences from "../preferences.js";
 import type * as recurring from "../recurring.js";
@@ -39,6 +40,7 @@ declare const fullApi: ApiFromModules<{
   goals: typeof goals;
   http: typeof http;
   monthlyBudgets: typeof monthlyBudgets;
+  notifications: typeof notifications;
   onboarding: typeof onboarding;
   preferences: typeof preferences;
   recurring: typeof recurring;
