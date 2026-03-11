@@ -141,6 +141,39 @@ export const getParentCategoryBreakdown = query({
   },
 });
 
+export const getSubCategoryBreakdown = query({
+  args: { userId: v.string(), startDate: v.string(), endDate: v.string(), parentCategory: v.string() },
+  handler: async (ctx, { userId, startDate, endDate, parentCategory }) => {
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', startDate).lt('date', endDate)
+      )
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const subMap = new Map<string, { name: string; icon: string; color: string; amount: number }>();
+
+    for (const tx of txs) {
+      if (tx.paidFromGoalId) continue;
+      if (!tx.categoryId) continue;
+      const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+      if (!cat) continue;
+      if ((cat.parentCategory ?? 'Other') !== parentCategory) continue;
+      const catId = tx.categoryId.toString();
+      if (!subMap.has(catId)) {
+        subMap.set(catId, { name: cat.name, icon: cat.icon, color: cat.color, amount: 0 });
+      }
+      subMap.get(catId)!.amount += Math.abs(tx.amount);
+    }
+
+    const total = [...subMap.values()].reduce((s, c) => s + c.amount, 0);
+    return [...subMap.values()]
+      .sort((a, b) => b.amount - a.amount)
+      .map((c) => ({ ...c, percent: total > 0 ? Math.round((c.amount / total) * 100) : 0 }));
+  },
+});
+
 export const getDailySpending = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
