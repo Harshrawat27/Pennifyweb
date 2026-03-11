@@ -26,11 +26,13 @@ export const listByMonth = query({
       txs.map(async (tx) => {
         let categoryName = 'Unknown';
         let categoryIcon = 'tag';
+        let categoryColor = '#A3A3A3';
         if (tx.categoryId) {
           const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
           if (cat) {
             categoryName = cat.name;
             categoryIcon = cat.icon;
+            categoryColor = cat.color;
           }
         }
         let accountName = '';
@@ -42,7 +44,7 @@ export const listByMonth = query({
             accountIcon = acc.icon;
           }
         }
-        return { ...tx, categoryName, categoryIcon, accountName, accountIcon };
+        return { ...tx, categoryName, categoryIcon, categoryColor, accountName, accountIcon };
       })
     );
   },
@@ -244,16 +246,17 @@ export const listBookmarked = query({
       txs.map(async (tx) => {
         let categoryName = 'Unknown';
         let categoryIcon = 'tag';
+        let categoryColor = '#A3A3A3';
         if (tx.categoryId) {
           const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
-          if (cat) { categoryName = cat.name; categoryIcon = cat.icon; }
+          if (cat) { categoryName = cat.name; categoryIcon = cat.icon; categoryColor = cat.color; }
         }
         let accountName = '';
         if (tx.accountId) {
           const acc = await ctx.db.get(tx.accountId as Id<'accounts'>);
           if (acc) accountName = acc.name;
         }
-        return { ...tx, categoryName, categoryIcon, accountName };
+        return { ...tx, categoryName, categoryIcon, categoryColor, accountName };
       })
     );
   },
