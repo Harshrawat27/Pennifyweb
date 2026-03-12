@@ -200,6 +200,66 @@ export const getDailySpending = query({
   },
 });
 
+export const getCategorySpendingInsights = query({
+  args: { userId: v.string(), month: v.string() },
+  handler: async (ctx, { userId, month }) => {
+    const start = month + '-01';
+    const end = nextMonthStart(month);
+    const [y, m] = month.split('-').map(Number);
+    const pm = m === 1 ? 12 : m - 1;
+    const py = m === 1 ? y - 1 : y;
+    const prevMonth = `${py}-${String(pm).padStart(2, '0')}`;
+    const lastStart = prevMonth + '-01';
+    const lastEnd = nextMonthStart(prevMonth);
+
+    const thisTxs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', start).lt('date', end))
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const lastTxs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', lastStart).lt('date', lastEnd))
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const thisMap = new Map<string, number>();
+    for (const tx of thisTxs) {
+      if (!tx.categoryId) continue;
+      const id = tx.categoryId as string;
+      thisMap.set(id, (thisMap.get(id) ?? 0) + Math.abs(tx.amount));
+    }
+
+    const lastMap = new Map<string, number>();
+    for (const tx of lastTxs) {
+      if (!tx.categoryId) continue;
+      const id = tx.categoryId as string;
+      lastMap.set(id, (lastMap.get(id) ?? 0) + Math.abs(tx.amount));
+    }
+
+    const allCatIds = new Set([...thisMap.keys()]);
+    const results = await Promise.all(
+      [...allCatIds].map(async (catId) => {
+        const cat = await ctx.db.get(catId as Id<'categories'>);
+        if (!cat) return null;
+        return {
+          categoryId: catId,
+          categoryName: cat.name,
+          categoryIcon: cat.icon,
+          categoryColor: (cat as any).color ?? '#6B7280',
+          thisMonth: thisMap.get(catId) ?? 0,
+          lastMonth: lastMap.get(catId) ?? 0,
+        };
+      })
+    );
+
+    return results
+      .filter((r): r is NonNullable<typeof r> => r !== null)
+      .sort((a, b) => b.thisMonth - a.thisMonth);
+  },
+});
+
 export const create = mutation({
   args: {
     userId: v.string(),

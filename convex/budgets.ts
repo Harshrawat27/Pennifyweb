@@ -56,6 +56,63 @@ export const listByMonth = query({
   },
 });
 
+function prevMonthRange(month: string): { start: string; end: string } {
+  const [y, m] = month.split('-').map(Number);
+  const pm = m === 1 ? 12 : m - 1;
+  const py = m === 1 ? y - 1 : y;
+  const prev = `${py}-${String(pm).padStart(2, '0')}`;
+  return { start: prev + '-01', end: nextMonthStart(prev) };
+}
+
+export const listByMonthWithComparison = query({
+  args: { userId: v.string(), month: v.string() },
+  handler: async (ctx, { userId, month }) => {
+    const budgets = await ctx.db
+      .query('budgets')
+      .withIndex('by_user_month', (q) => q.eq('userId', userId).eq('month', month))
+      .collect();
+
+    const start = month + '-01';
+    const end = nextMonthStart(month);
+    const { start: lastStart, end: lastEnd } = prevMonthRange(month);
+
+    return await Promise.all(
+      budgets.map(async (budget) => {
+        let categoryName = 'Unknown';
+        let categoryIcon = 'tag';
+        let categoryColor = '#6B7280';
+        let spent = 0;
+        let lastMonthSpent = 0;
+
+        if (budget.categoryId) {
+          const cat = await ctx.db.get(budget.categoryId as Id<'categories'>);
+          if (cat) {
+            categoryName = cat.name;
+            categoryIcon = cat.icon;
+            categoryColor = (cat as any).color ?? '#6B7280';
+
+            const txs = await ctx.db
+              .query('transactions')
+              .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', start).lt('date', end))
+              .filter((q) => q.and(q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>), q.lt(q.field('amount'), 0)))
+              .collect();
+            spent = txs.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+
+            const lastTxs = await ctx.db
+              .query('transactions')
+              .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', lastStart).lt('date', lastEnd))
+              .filter((q) => q.and(q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>), q.lt(q.field('amount'), 0)))
+              .collect();
+            lastMonthSpent = lastTxs.reduce((sum, t) => sum + Math.abs(t.amount), 0);
+          }
+        }
+
+        return { ...budget, categoryName, categoryIcon, categoryColor, spent, lastMonthSpent };
+      })
+    );
+  },
+});
+
 export const create = mutation({
   args: {
     userId: v.string(),

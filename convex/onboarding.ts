@@ -67,6 +67,14 @@ export const commitAll = mutation({
         })
       )
     ),
+    categoryBudgets: v.optional(
+      v.array(
+        v.object({
+          categoryName: v.string(),
+          limitAmount: v.number(),
+        })
+      )
+    ),
   },
   handler: async (ctx, args) => {
     const { userId } = args;
@@ -202,6 +210,26 @@ export const commitAll = mutation({
           categoryIcon: rule.categoryIcon,
           categoryColor: rule.categoryColor,
           createdAt,
+        });
+      }
+    }
+
+    // 8. Create category budgets — resolve categoryId by name, same as smart rules
+    if (args.categoryBudgets && args.categoryBudgets.length > 0) {
+      const allCategories = await ctx.db
+        .query('categories')
+        .filter((q) => q.eq(q.field('userId'), userId))
+        .collect();
+      const today = new Date();
+      const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+      for (const budget of args.categoryBudgets) {
+        const cat = allCategories.find((c) => c.name === budget.categoryName);
+        if (!cat) continue;
+        await ctx.db.insert('budgets', {
+          userId,
+          categoryId: cat._id,
+          limitAmount: budget.limitAmount,
+          month: currentMonth,
         });
       }
     }
