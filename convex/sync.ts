@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { requireAuth } from "./lib/auth";
 
 /**
  * Deletes all data for a user (called on account deletion).
@@ -8,6 +9,7 @@ export const deleteUserData = mutation({
   args: { userId: v.string() },
   handler: async (ctx, args) => {
     const userId = args.userId;
+    await requireAuth(ctx, userId);
 
     const tables = [
       "parent_categories",

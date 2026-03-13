@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { internalMutation, internalQuery, mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { requireAuth } from './lib/auth';
 
 function nextMonthStart(month: string): string {
   const [y, m] = month.split('-').map(Number);
@@ -11,6 +12,7 @@ function nextMonthStart(month: string): string {
 export const listByMonth = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const start = month + '-01';
     const end = nextMonthStart(month);
 
@@ -53,6 +55,7 @@ export const listByMonth = query({
 export const getMonthlyStats = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const start = month + '-01';
     const end = nextMonthStart(month);
 
@@ -77,6 +80,7 @@ export const getMonthlyStats = query({
 export const getCategoryBreakdown = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const start = month + '-01';
     const end = nextMonthStart(month);
 
@@ -112,6 +116,7 @@ export const getCategoryBreakdown = query({
 export const getParentCategoryBreakdown = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
   handler: async (ctx, { userId, startDate, endDate }) => {
+    await requireAuth(ctx, userId);
     // Compute previous period (same length, one period back)
     const start = new Date(startDate);
     const end = new Date(endDate);
@@ -174,6 +179,7 @@ export const getParentCategoryBreakdown = query({
 export const getSubCategoryBreakdown = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string(), parentCategoryId: v.id('parent_categories') },
   handler: async (ctx, { userId, startDate, endDate, parentCategoryId }) => {
+    await requireAuth(ctx, userId);
     const start = new Date(startDate);
     const end = new Date(endDate);
     const periodMs = end.getTime() - start.getTime();
@@ -233,6 +239,7 @@ export const getSubCategoryBreakdown = query({
 export const getDailySpending = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const start = month + '-01';
     const end = nextMonthStart(month);
 
@@ -259,6 +266,7 @@ export const getDailySpending = query({
 export const getCategorySpendingInsights = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const start = month + '-01';
     const end = nextMonthStart(month);
     const [y, m] = month.split('-').map(Number);
@@ -329,6 +337,7 @@ export const create = mutation({
     isBookmarked: v.optional(v.boolean()),
   },
   handler: async (ctx, { userId, title, amount, note, date, categoryId, accountId, receiptUrl, isBookmarked }) => {
+    await requireAuth(ctx, userId);
     return await ctx.db.insert('transactions', {
       userId,
       title,
@@ -364,6 +373,9 @@ export const setCategoryId = internalMutation({
 export const remove = mutation({
   args: { id: v.id('transactions') },
   handler: async (ctx, { id }) => {
+    const tx = await ctx.db.get(id);
+    if (!tx) return;
+    await requireAuth(ctx, tx.userId);
     await ctx.db.delete(id);
   },
 });
@@ -373,6 +385,7 @@ export const getById = query({
   handler: async (ctx, { id }) => {
     const tx = await ctx.db.get(id);
     if (!tx) return null;
+    await requireAuth(ctx, tx.userId);
 
     let categoryName = 'Unknown';
     let categoryIcon = 'tag';
@@ -401,6 +414,9 @@ export const update = mutation({
     accountId: v.id('accounts'),
   },
   handler: async (ctx, { id, title, amount, note, date, categoryId, accountId }) => {
+    const tx = await ctx.db.get(id);
+    if (!tx) return;
+    await requireAuth(ctx, tx.userId);
     await ctx.db.patch(id, { title, amount, note, date, categoryId, accountId });
   },
 });
@@ -410,6 +426,7 @@ export const toggleBookmark = mutation({
   handler: async (ctx, { id }) => {
     const tx = await ctx.db.get(id);
     if (!tx) return;
+    await requireAuth(ctx, tx.userId);
     await ctx.db.patch(id, { isBookmarked: !tx.isBookmarked });
   },
 });
@@ -417,6 +434,7 @@ export const toggleBookmark = mutation({
 export const listBookmarked = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    await requireAuth(ctx, userId);
     const txs = await ctx.db
       .query('transactions')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -447,6 +465,7 @@ export const listBookmarked = query({
 export const getStatsForPeriod = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
   handler: async (ctx, { userId, startDate, endDate }) => {
+    await requireAuth(ctx, userId);
     const txs = await ctx.db
       .query('transactions')
       .withIndex('by_user_date', (q) =>
@@ -495,6 +514,7 @@ export const getStatsForPeriod = query({
 export const getYearlyMonthly = query({
   args: { userId: v.string(), year: v.string() },
   handler: async (ctx, { userId, year }) => {
+    await requireAuth(ctx, userId);
     const start = `${year}-01-01`;
     const end = `${parseInt(year) + 1}-01-01`;
 

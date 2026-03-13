@@ -1,9 +1,11 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { requireAuth } from './lib/auth';
 
 export const get = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    await requireAuth(ctx, userId);
     return await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -22,6 +24,7 @@ export const upsert = mutation({
     weeklyReport: v.optional(v.boolean()),
   },
   handler: async (ctx, { userId, ...fields }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -38,6 +41,7 @@ export const upsert = mutation({
 export const updateCurrency = mutation({
   args: { userId: v.string(), currency: v.string() },
   handler: async (ctx, { userId, currency }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -49,6 +53,7 @@ export const updateCurrency = mutation({
 export const updateTrackIncome = mutation({
   args: { userId: v.string(), trackIncome: v.boolean() },
   handler: async (ctx, { userId, trackIncome }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -69,6 +74,7 @@ export const updateSubscription = mutation({
     subscriptionExpiresAt: v.optional(v.string()),
   },
   handler: async (ctx, { userId, subscriptionStatus, subscriptionExpiresAt }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -82,6 +88,7 @@ export const updateSubscription = mutation({
 export const updateHideBalance = mutation({
   args: { userId: v.string(), hideBalance: v.boolean() },
   handler: async (ctx, { userId, hideBalance }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -97,6 +104,7 @@ export const updateNotifications = mutation({
     dailyReminder: v.optional(v.boolean()),
   },
   handler: async (ctx, { userId, notificationsEnabled, dailyReminder }) => {
+    await requireAuth(ctx, userId);
     const existing = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))

@@ -1,9 +1,11 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import { requireAuth } from './lib/auth';
 
 export const list = query({
   args: { userId: v.string(), activeOnly: v.optional(v.boolean()) },
   handler: async (ctx, { userId, activeOnly }) => {
+    await requireAuth(ctx, userId);
     const accounts = await ctx.db
       .query('accounts')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -16,6 +18,9 @@ export const list = query({
 export const toggleActive = mutation({
   args: { id: v.id('accounts'), isActive: v.boolean() },
   handler: async (ctx, { id, isActive }) => {
+    const account = await ctx.db.get(id);
+    if (!account) return;
+    await requireAuth(ctx, account.userId);
     await ctx.db.patch(id, { isActive });
   },
 });
@@ -28,6 +33,7 @@ export const create = mutation({
     icon: v.string(),
   },
   handler: async (ctx, { userId, name, type, icon }) => {
+    await requireAuth(ctx, userId);
     return await ctx.db.insert('accounts', { userId, name, type, icon });
   },
 });
@@ -35,6 +41,9 @@ export const create = mutation({
 export const remove = mutation({
   args: { id: v.id('accounts') },
   handler: async (ctx, { id }) => {
+    const account = await ctx.db.get(id);
+    if (!account) return;
+    await requireAuth(ctx, account.userId);
     await ctx.db.delete(id);
   },
 });
@@ -42,7 +51,7 @@ export const remove = mutation({
 export const getTotalBalance = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
-    // Use overallBalance from user_preferences as the starting point
+    await requireAuth(ctx, userId);
     const prefs = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -50,7 +59,6 @@ export const getTotalBalance = query({
 
     const initialBalance = prefs?.overallBalance ?? 0;
 
-    // Add all transactions on top
     const transactions = await ctx.db
       .query('transactions')
       .withIndex('by_user', (q) => q.eq('userId', userId))

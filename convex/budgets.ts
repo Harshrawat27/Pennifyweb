@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { requireAuth } from './lib/auth';
 
 function nextMonthStart(month: string): string {
   const [y, m] = month.split('-').map(Number);
@@ -16,7 +17,6 @@ function prevMonthRange(month: string): { start: string; end: string } {
   return { start: prev + '-01', end: nextMonthStart(prev) };
 }
 
-// Get all sub-category IDs that belong to a parent category
 async function getSubCategoryIds(ctx: any, userId: string, parentCategoryId: Id<'parent_categories'>): Promise<Set<string>> {
   const subCats = await ctx.db
     .query('categories')
@@ -26,7 +26,6 @@ async function getSubCategoryIds(ctx: any, userId: string, parentCategoryId: Id<
   return new Set(subCats.map((c: any) => c._id as string));
 }
 
-// Sum expense transactions for a set of category IDs in a date range
 async function sumExpensesForCategories(ctx: any, userId: string, catIds: Set<string>, start: string, end: string): Promise<number> {
   if (catIds.size === 0) return 0;
   const txs = await ctx.db
@@ -42,6 +41,7 @@ async function sumExpensesForCategories(ctx: any, userId: string, catIds: Set<st
 export const listByMonth = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const budgets = await ctx.db
       .query('budgets')
       .withIndex('by_user_month', (q) => q.eq('userId', userId).eq('month', month))
@@ -69,6 +69,7 @@ export const listByMonth = query({
 export const listByMonthWithComparison = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
+    await requireAuth(ctx, userId);
     const budgets = await ctx.db
       .query('budgets')
       .withIndex('by_user_month', (q) => q.eq('userId', userId).eq('month', month))
@@ -103,6 +104,7 @@ export const create = mutation({
     month: v.string(),
   },
   handler: async (ctx, { userId, parentCategoryId, limitAmount, month }) => {
+    await requireAuth(ctx, userId);
     return await ctx.db.insert('budgets', { userId, parentCategoryId, limitAmount, month });
   },
 });
@@ -110,6 +112,9 @@ export const create = mutation({
 export const remove = mutation({
   args: { id: v.id('budgets') },
   handler: async (ctx, { id }) => {
+    const budget = await ctx.db.get(id);
+    if (!budget) return;
+    await requireAuth(ctx, budget.userId);
     await ctx.db.delete(id);
   },
 });

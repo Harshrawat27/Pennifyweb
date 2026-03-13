@@ -1,6 +1,7 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
 import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_PARENT_CATEGORIES } from './defaultCategories';
+import { requireAuth } from './lib/auth';
 
 /**
  * Batch commit all onboarding data to Convex in one mutation.
@@ -78,6 +79,7 @@ export const commitAll = mutation({
   },
   handler: async (ctx, args) => {
     const { userId } = args;
+    await requireAuth(ctx, userId);
 
     // 1. Create user preferences
     await ctx.db.insert('user_preferences', { userId, ...args.preferences });

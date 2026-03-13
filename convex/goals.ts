@@ -1,16 +1,17 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import type { Id } from './_generated/dataModel';
+import { requireAuth } from './lib/auth';
 
 export const list = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
+    await requireAuth(ctx, userId);
     const goals = await ctx.db
       .query('goals')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
 
-    // Join nextDue from linked recurring for sinking fund goals
     return await Promise.all(
       goals.map(async (goal) => {
         let nextDue: string | undefined;
@@ -35,6 +36,7 @@ export const create = mutation({
     linkedRecurringId: v.optional(v.id('recurring_payments')),
   },
   handler: async (ctx, { userId, name, icon, target, color, isRecurring, linkedRecurringId }) => {
+    await requireAuth(ctx, userId);
     return await ctx.db.insert('goals', {
       userId,
       name,
@@ -56,10 +58,10 @@ export const addContribution = mutation({
     amount: v.number(),
   },
   handler: async (ctx, { userId, goalId, amount }) => {
+    await requireAuth(ctx, userId);
     const goal = await ctx.db.get(goalId);
     if (!goal) throw new Error('Goal not found');
 
-    // Deduct directly from overallBalance — no fake transaction
     const prefs = await ctx.db
       .query('user_preferences')
       .withIndex('by_user', (q) => q.eq('userId', userId))
@@ -70,10 +72,8 @@ export const addContribution = mutation({
       });
     }
 
-    // Update goal saved amount
     await ctx.db.patch(goalId, { saved: goal.saved + amount });
 
-    // Record contribution history
     const today = new Date().toISOString().slice(0, 10);
     await ctx.db.insert('goal_contributions', { goalId, userId, amount, date: today });
   },
@@ -82,6 +82,9 @@ export const addContribution = mutation({
 export const listContributions = query({
   args: { goalId: v.id('goals') },
   handler: async (ctx, { goalId }) => {
+    const goal = await ctx.db.get(goalId);
+    if (!goal) return [];
+    await requireAuth(ctx, goal.userId);
     const contributions = await ctx.db
       .query('goal_contributions')
       .withIndex('by_goal', (q) => q.eq('goalId', goalId))
@@ -90,10 +93,10 @@ export const listContributions = query({
   },
 });
 
-// Called when user manually marks a sinking fund goal as paid
 export const markPaid = mutation({
   args: { id: v.id('goals'), userId: v.string() },
   handler: async (ctx, { id, userId }) => {
+    await requireAuth(ctx, userId);
     const goal = await ctx.db.get(id);
     if (!goal) throw new Error('Goal not found');
 
@@ -102,21 +105,18 @@ export const markPaid = mutation({
     let title = goal.name;
     let categoryId: Id<'categories'> | undefined;
 
-    // Get details from linked recurring
     if (goal.linkedRecurringId) {
       const recurring = await ctx.db.get(goal.linkedRecurringId);
       if (recurring) {
         title = recurring.name;
         categoryId = recurring.categoryId as Id<'categories'> | undefined;
 
-        // Advance nextDue by one year
         const [y, m, d] = recurring.nextDue.split('-');
         const nextDue = `${Number(y) + 1}-${m}-${d}`;
         await ctx.db.patch(recurring._id, { nextDue, lastProcessed: today });
       }
     }
 
-    // Create the real transaction tagged as paid from this goal
     await ctx.db.insert('transactions', {
       userId,
       title,
@@ -127,7 +127,6 @@ export const markPaid = mutation({
       ...(categoryId ? { categoryId } : {}),
     });
 
-    // Reset goal for next year — saved back to 0, clear paymentDue flag
     await ctx.db.patch(id, { saved: 0, paymentDue: false });
   },
 });
@@ -135,6 +134,9 @@ export const markPaid = mutation({
 export const markCompleted = mutation({
   args: { id: v.id('goals') },
   handler: async (ctx, { id }) => {
+    const goal = await ctx.db.get(id);
+    if (!goal) return;
+    await requireAuth(ctx, goal.userId);
     const today = new Date().toISOString().slice(0, 10);
     await ctx.db.patch(id, { status: 'completed', completedAt: today });
   },
@@ -146,10 +148,10 @@ export const remove = mutation({
     userId: v.string(),
   },
   handler: async (ctx, { id, userId }) => {
+    await requireAuth(ctx, userId);
     const goal = await ctx.db.get(id);
     if (!goal) return;
 
-    // Refund saved amount directly to overallBalance — no fake transaction
     if (goal.saved > 0) {
       const prefs = await ctx.db
         .query('user_preferences')
@@ -162,12 +164,10 @@ export const remove = mutation({
       }
     }
 
-    // Clear linkedGoalId on the linked recurring payment
     if (goal.linkedRecurringId) {
       await ctx.db.patch(goal.linkedRecurringId, { linkedGoalId: undefined });
     }
 
-    // Delete all contribution history for this goal
     const contributions = await ctx.db
       .query('goal_contributions')
       .withIndex('by_goal', (q) => q.eq('goalId', id))
