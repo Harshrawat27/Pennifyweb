@@ -97,6 +97,24 @@ export const updateHideBalance = mutation({
   },
 });
 
+export const updateBalance = mutation({
+  args: { userId: v.string(), desiredBalance: v.number() },
+  handler: async (ctx, { userId, desiredBalance }) => {
+    await requireAuth(ctx, userId);
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .collect();
+    const txSum = txs.reduce((s, t) => s + t.amount, 0);
+    const overallBalance = desiredBalance - txSum;
+    const existing = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (existing) await ctx.db.patch(existing._id, { overallBalance });
+  },
+});
+
 export const updateNotifications = mutation({
   args: {
     userId: v.string(),
