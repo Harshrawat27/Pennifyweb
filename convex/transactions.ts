@@ -120,18 +120,21 @@ export const getParentCategoryBreakdown = query({
       .filter((q) => q.lt(q.field('amount'), 0))
       .collect();
 
-    const parentMap = new Map<string, { name: string; color: string; amount: number }>();
+    const parentMap = new Map<string, { id: string; name: string; icon: string; color: string; amount: number }>();
 
     for (const tx of txs) {
       if (tx.paidFromGoalId) continue;
       if (!tx.categoryId) continue;
       const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
       if (!cat) continue;
-      const parentName = cat.parentCategory ?? 'Other';
-      if (!parentMap.has(parentName)) {
-        parentMap.set(parentName, { name: parentName, color: cat.color, amount: 0 });
+      if (!cat.parentCategoryId) continue;
+      const parentId = cat.parentCategoryId as string;
+      if (!parentMap.has(parentId)) {
+        const parent = await ctx.db.get(cat.parentCategoryId as Id<'parent_categories'>);
+        if (!parent) continue;
+        parentMap.set(parentId, { id: parentId, name: parent.name, icon: parent.icon, color: parent.color, amount: 0 });
       }
-      parentMap.get(parentName)!.amount += Math.abs(tx.amount);
+      parentMap.get(parentId)!.amount += Math.abs(tx.amount);
     }
 
     const total = [...parentMap.values()].reduce((s, c) => s + c.amount, 0);
@@ -142,8 +145,8 @@ export const getParentCategoryBreakdown = query({
 });
 
 export const getSubCategoryBreakdown = query({
-  args: { userId: v.string(), startDate: v.string(), endDate: v.string(), parentCategory: v.string() },
-  handler: async (ctx, { userId, startDate, endDate, parentCategory }) => {
+  args: { userId: v.string(), startDate: v.string(), endDate: v.string(), parentCategoryId: v.id('parent_categories') },
+  handler: async (ctx, { userId, startDate, endDate, parentCategoryId }) => {
     const txs = await ctx.db
       .query('transactions')
       .withIndex('by_user_date', (q) =>
@@ -159,7 +162,7 @@ export const getSubCategoryBreakdown = query({
       if (!tx.categoryId) continue;
       const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
       if (!cat) continue;
-      if ((cat.parentCategory ?? 'Other') !== parentCategory) continue;
+      if ((cat.parentCategoryId as string | undefined) !== (parentCategoryId as string)) continue;
       const catId = tx.categoryId.toString();
       if (!subMap.has(catId)) {
         subMap.set(catId, { name: cat.name, icon: cat.icon, color: cat.color, amount: 0 });

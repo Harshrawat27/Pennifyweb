@@ -19,6 +19,7 @@ import type * as http from "../http.js";
 import type * as monthlyBudgets from "../monthlyBudgets.js";
 import type * as notifications from "../notifications.js";
 import type * as onboarding from "../onboarding.js";
+import type * as parentCategories from "../parentCategories.js";
 import type * as preferences from "../preferences.js";
 import type * as recurring from "../recurring.js";
 import type * as rules from "../rules.js";
@@ -43,6 +44,7 @@ declare const fullApi: ApiFromModules<{
   monthlyBudgets: typeof monthlyBudgets;
   notifications: typeof notifications;
   onboarding: typeof onboarding;
+  parentCategories: typeof parentCategories;
   preferences: typeof preferences;
   recurring: typeof recurring;
   rules: typeof rules;

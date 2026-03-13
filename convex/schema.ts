@@ -2,6 +2,14 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
+  parent_categories: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    icon: v.string(),
+    color: v.string(),
+    isDefault: v.optional(v.boolean()), // true = cannot be deleted by user
+  }).index('by_user', ['userId']),
+
   accounts: defineTable({
     userId: v.string(),
     name: v.string(),
@@ -16,7 +24,7 @@ export default defineSchema({
     icon: v.string(),
     type: v.string(), // 'expense' | 'income'
     color: v.string(),
-    parentCategory: v.optional(v.string()), // main group e.g. 'Food & Drink'
+    parentCategoryId: v.optional(v.id('parent_categories')), // FK to parent_categories
     isDefault: v.optional(v.boolean()),     // true = cannot be deleted by user
   }).index('by_user', ['userId']),
 
@@ -44,14 +52,9 @@ export default defineSchema({
 
   budgets: defineTable({
     userId: v.string(),
-    categoryId: v.optional(v.id('categories')), // Convex-native ref
+    parentCategoryId: v.id('parent_categories'), // budget targets a parent category
     limitAmount: v.number(),
     month: v.string(), // YYYY-MM
-    // Legacy
-    // categoryLocalId: v.optional(v.string()),
-    // localId: v.optional(v.string()),
-    // updatedAt: v.optional(v.string()),
-    // deleted: v.optional(v.boolean()),
   })
     .index('by_user', ['userId'])
     .index('by_user_month', ['userId', 'month']),

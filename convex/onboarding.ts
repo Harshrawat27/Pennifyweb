@@ -1,6 +1,6 @@
 import { v } from 'convex/values';
 import { mutation } from './_generated/server';
-import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, PARENT_CATEGORY_COLORS } from './defaultCategories';
+import { DEFAULT_EXPENSE_CATEGORIES, DEFAULT_INCOME_CATEGORIES, DEFAULT_PARENT_CATEGORIES } from './defaultCategories';
 
 /**
  * Batch commit all onboarding data to Convex in one mutation.
@@ -28,10 +28,10 @@ export const commitAll = mutation({
       v.array(
         v.object({
           name: v.string(),
-          parentCategory: v.optional(v.string()),
+          parentCategory: v.optional(v.string()), // resolved to parentCategoryId by name
         })
       )
-    ), // user-added categories beyond defaults
+    ),
     goals: v.array(
       v.object({
         name: v.string(),
@@ -70,7 +70,7 @@ export const commitAll = mutation({
     categoryBudgets: v.optional(
       v.array(
         v.object({
-          categoryName: v.string(),
+          parentCategoryName: v.string(), // resolved to parentCategoryId by name
           limitAmount: v.number(),
         })
       )
@@ -87,20 +87,34 @@ export const commitAll = mutation({
       await ctx.db.insert('accounts', { userId, name: acc.name, type: acc.type, icon: acc.icon });
     }
 
-    // 3. Create all 40 default expense categories
+    // 3. Seed default parent categories — build name→id map for FK resolution
+    const parentNameToId = new Map<string, string>();
+    for (const parent of DEFAULT_PARENT_CATEGORIES) {
+      const id = await ctx.db.insert('parent_categories', {
+        userId,
+        name: parent.name,
+        icon: parent.icon,
+        color: parent.color,
+        isDefault: true,
+      });
+      parentNameToId.set(parent.name, id);
+    }
+
+    // 4. Create all default expense sub-categories with real parentCategoryId
     for (const cat of DEFAULT_EXPENSE_CATEGORIES) {
+      const parentCategoryId = parentNameToId.get(cat.parentCategory) as any;
       await ctx.db.insert('categories', {
         userId,
         name: cat.name,
         icon: cat.icon,
         type: 'expense',
         color: cat.color,
-        parentCategory: cat.parentCategory,
+        parentCategoryId,
         isDefault: true,
       });
     }
 
-    // Default income categories
+    // Default income categories (no parent)
     for (const cat of DEFAULT_INCOME_CATEGORIES) {
       await ctx.db.insert('categories', {
         userId,
@@ -114,8 +128,11 @@ export const commitAll = mutation({
 
     // User's custom categories (added during onboarding)
     for (const cat of (args.customCategories ?? [])) {
+      const parentCategoryId = cat.parentCategory
+        ? (parentNameToId.get(cat.parentCategory) as any)
+        : undefined;
       const color = cat.parentCategory
-        ? (PARENT_CATEGORY_COLORS[cat.parentCategory] ?? '#6B7280')
+        ? (DEFAULT_PARENT_CATEGORIES.find((p) => p.name === cat.parentCategory)?.color ?? '#6B7280')
         : '#6B7280';
       await ctx.db.insert('categories', {
         userId,
@@ -123,17 +140,17 @@ export const commitAll = mutation({
         icon: 'tag',
         type: 'expense',
         color,
-        parentCategory: cat.parentCategory,
+        parentCategoryId,
         isDefault: false,
       });
     }
 
-    // 4. Create goals
+    // 5. Create goals
     for (const goal of args.goals) {
       await ctx.db.insert('goals', { userId, ...goal, saved: 0 });
     }
 
-    // 5. Create recurring payments
+    // 6. Create recurring payments
     const createdRecurring: Array<{ id: string; name: string }> = [];
     if (args.recurringPayments && args.recurringPayments.length > 0) {
       const today = new Date().toISOString().slice(0, 10);
@@ -164,9 +181,6 @@ export const commitAll = mutation({
           nextDue: p.frequency === 'monthly' ? nextDueMonthly(p.billingDay) : nextYearToday,
         });
         createdRecurring.push({ id, name: p.name });
-        // Only create a transaction now if the billing day has already passed
-        // (or is today), or no billing day was set. If the billing day is still
-        // coming this month, the daily cron will handle it on the correct date.
         const shouldCreateNow = !p.billingDay || p.billingDay <= d;
         if (shouldCreateNow) {
           await ctx.db.insert('transactions', {
@@ -180,7 +194,7 @@ export const commitAll = mutation({
       }
     }
 
-    // 6. Create monthly budget
+    // 7. Create monthly budget
     if (args.monthlyBudget && args.monthlyBudget.budget > 0) {
       await ctx.db.insert('monthly_budgets', {
         userId,
@@ -189,18 +203,16 @@ export const commitAll = mutation({
       });
     }
 
-    // 7. Create smart rules — resolve categoryId by name from the just-inserted categories
+    // 8. Create smart rules — resolve categoryId by name
     if (args.smartRules && args.smartRules.length > 0) {
       const allCategories = await ctx.db
         .query('categories')
-        .filter((q) => q.eq(q.field('userId'), userId))
+        .withIndex('by_user', (q) => q.eq('userId', userId))
         .collect();
-      const now = new Date().toISOString();
       for (let i = 0; i < args.smartRules.length; i++) {
         const rule = args.smartRules[i];
         const cat = allCategories.find((c) => c.name === rule.categoryName);
         if (!cat) continue;
-        // Offset createdAt by index to preserve ordering
         const createdAt = new Date(Date.now() + i).toISOString();
         await ctx.db.insert('category_rules', {
           userId,
@@ -214,20 +226,16 @@ export const commitAll = mutation({
       }
     }
 
-    // 8. Create category budgets — resolve categoryId by name, same as smart rules
+    // 9. Create category budgets — resolved to parent categories by name
     if (args.categoryBudgets && args.categoryBudgets.length > 0) {
-      const allCategories = await ctx.db
-        .query('categories')
-        .filter((q) => q.eq(q.field('userId'), userId))
-        .collect();
       const today = new Date();
       const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
       for (const budget of args.categoryBudgets) {
-        const cat = allCategories.find((c) => c.name === budget.categoryName);
-        if (!cat) continue;
+        const parentCategoryId = parentNameToId.get(budget.parentCategoryName) as any;
+        if (!parentCategoryId) continue;
         await ctx.db.insert('budgets', {
           userId,
-          categoryId: cat._id,
+          parentCategoryId,
           limitAmount: budget.limitAmount,
           month: currentMonth,
         });

@@ -8,6 +8,37 @@ function nextMonthStart(month: string): string {
   return `${y}-${String(m + 1).padStart(2, '0')}-01`;
 }
 
+function prevMonthRange(month: string): { start: string; end: string } {
+  const [y, m] = month.split('-').map(Number);
+  const pm = m === 1 ? 12 : m - 1;
+  const py = m === 1 ? y - 1 : y;
+  const prev = `${py}-${String(pm).padStart(2, '0')}`;
+  return { start: prev + '-01', end: nextMonthStart(prev) };
+}
+
+// Get all sub-category IDs that belong to a parent category
+async function getSubCategoryIds(ctx: any, userId: string, parentCategoryId: Id<'parent_categories'>): Promise<Set<string>> {
+  const subCats = await ctx.db
+    .query('categories')
+    .withIndex('by_user', (q: any) => q.eq('userId', userId))
+    .filter((q: any) => q.eq(q.field('parentCategoryId'), parentCategoryId))
+    .collect();
+  return new Set(subCats.map((c: any) => c._id as string));
+}
+
+// Sum expense transactions for a set of category IDs in a date range
+async function sumExpensesForCategories(ctx: any, userId: string, catIds: Set<string>, start: string, end: string): Promise<number> {
+  if (catIds.size === 0) return 0;
+  const txs = await ctx.db
+    .query('transactions')
+    .withIndex('by_user_date', (q: any) => q.eq('userId', userId).gte('date', start).lt('date', end))
+    .filter((q: any) => q.lt(q.field('amount'), 0))
+    .collect();
+  return txs
+    .filter((tx: any) => tx.categoryId && catIds.has(tx.categoryId as string))
+    .reduce((sum: number, tx: any) => sum + Math.abs(tx.amount), 0);
+}
+
 export const listByMonth = query({
   args: { userId: v.string(), month: v.string() },
   handler: async (ctx, { userId, month }) => {
@@ -19,50 +50,21 @@ export const listByMonth = query({
     const start = month + '-01';
     const end = nextMonthStart(month);
 
-    // Enrich with category data and calculate spent
     return await Promise.all(
       budgets.map(async (budget) => {
-        let categoryName = 'Unknown';
-        let categoryIcon = 'tag';
-        let spent = 0;
+        const parent = await ctx.db.get(budget.parentCategoryId as Id<'parent_categories'>);
+        const parentName = parent?.name ?? 'Unknown';
+        const parentIcon = parent?.icon ?? 'tag';
+        const parentColor = parent?.color ?? '#6B7280';
 
-        if (budget.categoryId) {
-          const cat = await ctx.db.get(budget.categoryId as Id<'categories'>);
-          if (cat) {
-            categoryName = cat.name;
-            categoryIcon = cat.icon;
+        const subCatIds = await getSubCategoryIds(ctx, userId, budget.parentCategoryId as Id<'parent_categories'>);
+        const spent = await sumExpensesForCategories(ctx, userId, subCatIds, start, end);
 
-            // Sum expenses for this category in this month
-            const txs = await ctx.db
-              .query('transactions')
-              .withIndex('by_user_date', (q) =>
-                q.eq('userId', userId).gte('date', start).lt('date', end)
-              )
-              .filter((q) =>
-                q.and(
-                  q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>),
-                  q.lt(q.field('amount'), 0)
-                )
-              )
-              .collect();
-
-            spent = txs.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-          }
-        }
-
-        return { ...budget, categoryName, categoryIcon, spent };
+        return { ...budget, parentName, parentIcon, parentColor, spent };
       })
     );
   },
 });
-
-function prevMonthRange(month: string): { start: string; end: string } {
-  const [y, m] = month.split('-').map(Number);
-  const pm = m === 1 ? 12 : m - 1;
-  const py = m === 1 ? y - 1 : y;
-  const prev = `${py}-${String(pm).padStart(2, '0')}`;
-  return { start: prev + '-01', end: nextMonthStart(prev) };
-}
 
 export const listByMonthWithComparison = query({
   args: { userId: v.string(), month: v.string() },
@@ -78,36 +80,16 @@ export const listByMonthWithComparison = query({
 
     return await Promise.all(
       budgets.map(async (budget) => {
-        let categoryName = 'Unknown';
-        let categoryIcon = 'tag';
-        let categoryColor = '#6B7280';
-        let spent = 0;
-        let lastMonthSpent = 0;
+        const parent = await ctx.db.get(budget.parentCategoryId as Id<'parent_categories'>);
+        const parentName = parent?.name ?? 'Unknown';
+        const parentIcon = parent?.icon ?? 'tag';
+        const parentColor = parent?.color ?? '#6B7280';
 
-        if (budget.categoryId) {
-          const cat = await ctx.db.get(budget.categoryId as Id<'categories'>);
-          if (cat) {
-            categoryName = cat.name;
-            categoryIcon = cat.icon;
-            categoryColor = (cat as any).color ?? '#6B7280';
+        const subCatIds = await getSubCategoryIds(ctx, userId, budget.parentCategoryId as Id<'parent_categories'>);
+        const spent = await sumExpensesForCategories(ctx, userId, subCatIds, start, end);
+        const lastMonthSpent = await sumExpensesForCategories(ctx, userId, subCatIds, lastStart, lastEnd);
 
-            const txs = await ctx.db
-              .query('transactions')
-              .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', start).lt('date', end))
-              .filter((q) => q.and(q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>), q.lt(q.field('amount'), 0)))
-              .collect();
-            spent = txs.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-
-            const lastTxs = await ctx.db
-              .query('transactions')
-              .withIndex('by_user_date', (q) => q.eq('userId', userId).gte('date', lastStart).lt('date', lastEnd))
-              .filter((q) => q.and(q.eq(q.field('categoryId'), budget.categoryId as Id<'categories'>), q.lt(q.field('amount'), 0)))
-              .collect();
-            lastMonthSpent = lastTxs.reduce((sum, t) => sum + Math.abs(t.amount), 0);
-          }
-        }
-
-        return { ...budget, categoryName, categoryIcon, categoryColor, spent, lastMonthSpent };
+        return { ...budget, parentName, parentIcon, parentColor, spent, lastMonthSpent };
       })
     );
   },
@@ -116,12 +98,12 @@ export const listByMonthWithComparison = query({
 export const create = mutation({
   args: {
     userId: v.string(),
-    categoryId: v.id('categories'),
+    parentCategoryId: v.id('parent_categories'),
     limitAmount: v.number(),
     month: v.string(),
   },
-  handler: async (ctx, { userId, categoryId, limitAmount, month }) => {
-    return await ctx.db.insert('budgets', { userId, categoryId, limitAmount, month });
+  handler: async (ctx, { userId, parentCategoryId, limitAmount, month }) => {
+    return await ctx.db.insert('budgets', { userId, parentCategoryId, limitAmount, month });
   },
 });
 

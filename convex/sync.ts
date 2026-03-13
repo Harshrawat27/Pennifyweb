@@ -10,6 +10,7 @@ export const deleteUserData = mutation({
     const userId = args.userId;
 
     const tables = [
+      "parent_categories",
       "accounts",
       "categories",
       "transactions",
@@ -19,6 +20,7 @@ export const deleteUserData = mutation({
       "user_preferences",
       "monthly_budgets",
       "recurring_payments",
+      "category_rules",
     ] as const;
 
     for (const table of tables) {

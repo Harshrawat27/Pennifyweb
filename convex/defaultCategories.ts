@@ -1,6 +1,18 @@
-// Master list of default expense categories.
+// Master list of default parent + sub categories.
 // These are auto-created for every user on onboarding.
-// parentCategory is used for grouping in charts and reports.
+
+export const DEFAULT_PARENT_CATEGORIES = [
+  { name: 'Food & Drink', icon: 'coffee', color: '#F97316' },
+  { name: 'Transport', icon: 'navigation', color: '#3B82F6' },
+  { name: 'Shopping', icon: 'shopping-bag', color: '#8B5CF6' },
+  { name: 'Bills & Utilities', icon: 'home', color: '#CA8A04' },
+  { name: 'Health & Wellness', icon: 'activity', color: '#16A34A' },
+  { name: 'Entertainment', icon: 'film', color: '#DB2777' },
+  { name: 'Personal Care', icon: 'scissors', color: '#E11D48' },
+  { name: 'Education', icon: 'book-open', color: '#4F46E5' },
+  { name: 'Travel', icon: 'send', color: '#0D9488' },
+  { name: 'Other', icon: 'more-horizontal', color: '#6B7280' },
+] as const;
 
 export const DEFAULT_EXPENSE_CATEGORIES = [
   // Food & Drink

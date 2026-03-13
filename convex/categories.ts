@@ -1,24 +1,40 @@
 import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
+import type { Id } from './_generated/dataModel';
+
+async function enrichCategory(ctx: any, cat: any) {
+  let parentCategoryName: string | undefined;
+  let parentCategoryColor: string | undefined;
+  if (cat.parentCategoryId) {
+    const parent = await ctx.db.get(cat.parentCategoryId as Id<'parent_categories'>);
+    if (parent) {
+      parentCategoryName = parent.name;
+      parentCategoryColor = parent.color;
+    }
+  }
+  return { ...cat, parentCategoryName, parentCategoryColor };
+}
 
 export const list = query({
   args: { userId: v.string() },
   handler: async (ctx, { userId }) => {
-    return await ctx.db
+    const cats = await ctx.db
       .query('categories')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .collect();
+    return await Promise.all(cats.map((cat) => enrichCategory(ctx, cat)));
   },
 });
 
 export const listByType = query({
   args: { userId: v.string(), type: v.string() },
   handler: async (ctx, { userId, type }) => {
-    return await ctx.db
+    const cats = await ctx.db
       .query('categories')
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .filter((q) => q.eq(q.field('type'), type))
       .collect();
+    return await Promise.all(cats.map((cat) => enrichCategory(ctx, cat)));
   },
 });
 
@@ -29,10 +45,10 @@ export const create = mutation({
     icon: v.string(),
     type: v.string(),
     color: v.string(),
-    parentCategory: v.optional(v.string()),
+    parentCategoryId: v.optional(v.id('parent_categories')),
   },
-  handler: async (ctx, { userId, name, icon, type, color, parentCategory }) => {
-    return await ctx.db.insert('categories', { userId, name, icon, type, color, parentCategory, isDefault: false });
+  handler: async (ctx, { userId, name, icon, type, color, parentCategoryId }) => {
+    return await ctx.db.insert('categories', { userId, name, icon, type, color, parentCategoryId, isDefault: false });
   },
 });
 
