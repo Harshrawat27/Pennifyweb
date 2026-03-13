@@ -112,6 +112,13 @@ export const getCategoryBreakdown = query({
 export const getParentCategoryBreakdown = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string() },
   handler: async (ctx, { userId, startDate, endDate }) => {
+    // Compute previous period (same length, one period back)
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const periodMs = end.getTime() - start.getTime();
+    const prevEnd = startDate;
+    const prevStart = new Date(start.getTime() - periodMs).toISOString().slice(0, 10);
+
     const txs = await ctx.db
       .query('transactions')
       .withIndex('by_user_date', (q) =>
@@ -120,7 +127,15 @@ export const getParentCategoryBreakdown = query({
       .filter((q) => q.lt(q.field('amount'), 0))
       .collect();
 
-    const parentMap = new Map<string, { id: string; name: string; icon: string; color: string; amount: number }>();
+    const prevTxs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', prevStart).lt('date', prevEnd)
+      )
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const parentMap = new Map<string, { id: string; name: string; icon: string; color: string; amount: number; lastAmount: number }>();
 
     for (const tx of txs) {
       if (tx.paidFromGoalId) continue;
@@ -132,9 +147,21 @@ export const getParentCategoryBreakdown = query({
       if (!parentMap.has(parentId)) {
         const parent = await ctx.db.get(cat.parentCategoryId as Id<'parent_categories'>);
         if (!parent) continue;
-        parentMap.set(parentId, { id: parentId, name: parent.name, icon: parent.icon, color: parent.color, amount: 0 });
+        parentMap.set(parentId, { id: parentId, name: parent.name, icon: parent.icon, color: parent.color, amount: 0, lastAmount: 0 });
       }
       parentMap.get(parentId)!.amount += Math.abs(tx.amount);
+    }
+
+    for (const tx of prevTxs) {
+      if (tx.paidFromGoalId) continue;
+      if (!tx.categoryId) continue;
+      const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+      if (!cat) continue;
+      if (!cat.parentCategoryId) continue;
+      const parentId = cat.parentCategoryId as string;
+      if (parentMap.has(parentId)) {
+        parentMap.get(parentId)!.lastAmount += Math.abs(tx.amount);
+      }
     }
 
     const total = [...parentMap.values()].reduce((s, c) => s + c.amount, 0);
@@ -147,6 +174,12 @@ export const getParentCategoryBreakdown = query({
 export const getSubCategoryBreakdown = query({
   args: { userId: v.string(), startDate: v.string(), endDate: v.string(), parentCategoryId: v.id('parent_categories') },
   handler: async (ctx, { userId, startDate, endDate, parentCategoryId }) => {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const periodMs = end.getTime() - start.getTime();
+    const prevEnd = startDate;
+    const prevStart = new Date(start.getTime() - periodMs).toISOString().slice(0, 10);
+
     const txs = await ctx.db
       .query('transactions')
       .withIndex('by_user_date', (q) =>
@@ -155,7 +188,15 @@ export const getSubCategoryBreakdown = query({
       .filter((q) => q.lt(q.field('amount'), 0))
       .collect();
 
-    const subMap = new Map<string, { name: string; icon: string; color: string; amount: number }>();
+    const prevTxs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', prevStart).lt('date', prevEnd)
+      )
+      .filter((q) => q.lt(q.field('amount'), 0))
+      .collect();
+
+    const subMap = new Map<string, { name: string; icon: string; color: string; amount: number; lastAmount: number }>();
 
     for (const tx of txs) {
       if (tx.paidFromGoalId) continue;
@@ -165,9 +206,21 @@ export const getSubCategoryBreakdown = query({
       if ((cat.parentCategoryId as string | undefined) !== (parentCategoryId as string)) continue;
       const catId = tx.categoryId.toString();
       if (!subMap.has(catId)) {
-        subMap.set(catId, { name: cat.name, icon: cat.icon, color: cat.color, amount: 0 });
+        subMap.set(catId, { name: cat.name, icon: cat.icon, color: cat.color, amount: 0, lastAmount: 0 });
       }
       subMap.get(catId)!.amount += Math.abs(tx.amount);
+    }
+
+    for (const tx of prevTxs) {
+      if (tx.paidFromGoalId) continue;
+      if (!tx.categoryId) continue;
+      const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+      if (!cat) continue;
+      if ((cat.parentCategoryId as string | undefined) !== (parentCategoryId as string)) continue;
+      const catId = tx.categoryId.toString();
+      if (subMap.has(catId)) {
+        subMap.get(catId)!.lastAmount += Math.abs(tx.amount);
+      }
     }
 
     const total = [...subMap.values()].reduce((s, c) => s + c.amount, 0);
