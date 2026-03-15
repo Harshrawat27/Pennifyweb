@@ -59,54 +59,20 @@ function GooglePlayBadge() {
 }
 
 // ─── Phone Frame ──────────────────────────────────────────────────────────────
-function PhoneFrame({
-  src,
-  alt,
-  width = 260,
-}: {
-  src: string;
-  alt: string;
-  width?: number;
-}) {
+function AppImg({ src, alt, width }: { src: string; alt: string; width: number }) {
   return (
-    <div
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt={alt}
       style={{
         width,
+        height: 'auto',
+        display: 'block',
         flexShrink: 0,
-        background: '#111',
-        borderRadius: 44,
-        padding: '10px 8px 14px',
-        boxShadow:
-          '0 32px 80px rgba(0,0,0,0.2), 0 0 0 1px rgba(255,255,255,0.06)',
+        filter: 'drop-shadow(0 24px 48px rgba(0,0,0,0.18))',
       }}
-    >
-      <div
-        style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}
-      >
-        <div
-          style={{
-            width: 90,
-            height: 26,
-            background: '#000',
-            borderRadius: 13,
-          }}
-        />
-      </div>
-      <div style={{ borderRadius: 32, overflow: 'hidden', lineHeight: 0 }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={src} alt={alt} style={{ width: '100%', display: 'block' }} />
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'center', marginTop: 8 }}>
-        <div
-          style={{
-            width: 80,
-            height: 4,
-            background: '#2a2a2a',
-            borderRadius: 2,
-          }}
-        />
-      </div>
-    </div>
+    />
   );
 }
 
@@ -254,7 +220,7 @@ function FeaturesTabs() {
           animation: 'phoneIn 0.35s cubic-bezier(0.4,0,0.2,1) both',
         }}
       >
-        <PhoneFrame src={f.screenshot} alt={f.alt} width={240} />
+        <AppImg src={f.screenshot} alt={f.alt} width={310} />
       </div>
     </div>
   );
@@ -274,7 +240,7 @@ function Navbar() {
     >
       <nav
         style={{
-          maxWidth: 1100,
+          maxWidth: 1024,
           margin: '0 auto',
           padding: '12px 24px',
           borderRadius: 18,
@@ -534,7 +500,7 @@ export default function Home() {
           style={{
             position: 'relative',
             zIndex: 1,
-            maxWidth: 1100,
+            maxWidth: 1280,
             margin: '0 auto',
             display: 'flex',
             gap: 56,
@@ -650,11 +616,7 @@ export default function Home() {
           {/* Phone + floating card */}
           <div className='a-in' style={{ position: 'relative', flexShrink: 0 }}>
             <div className='phone-hero'>
-              <PhoneFrame
-                src='/home-page.svg'
-                alt='Pennify home dashboard'
-                width={256}
-              />
+              <AppImg src='/home-page.svg' alt='Pennify home dashboard' width={320} />
             </div>
 
             {/* Floating AI categorization card */}
@@ -797,7 +759,7 @@ export default function Home() {
       >
         <div
           style={{
-            maxWidth: 1100,
+            maxWidth: 1280,
             margin: '0 auto',
             padding: '28px 20px',
             display: 'flex',
@@ -843,7 +805,7 @@ export default function Home() {
         id='features'
         style={{ background: '#fff', padding: '100px 20px' }}
       >
-        <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 56 }}>
             <div
               style={{
@@ -897,7 +859,7 @@ export default function Home() {
       >
         <div
           style={{
-            maxWidth: 1100,
+            maxWidth: 1280,
             margin: '0 auto',
             display: 'flex',
             gap: 72,
@@ -907,11 +869,7 @@ export default function Home() {
           }}
         >
           <div className='a-in' style={{ flexShrink: 0 }}>
-            <PhoneFrame
-              src='/monthly-transactions.svg'
-              alt='Monthly transactions view'
-              width={248}
-            />
+            <AppImg src='/monthly-transactions.svg' alt='Monthly transactions view' width={320} />
           </div>
           <div style={{ flex: '1 1 300px', maxWidth: 460 }}>
             <div
@@ -1088,7 +1046,7 @@ export default function Home() {
       >
         <div
           style={{
-            maxWidth: 1100,
+            maxWidth: 1280,
             margin: '0 auto',
             display: 'flex',
             justifyContent: 'space-between',
