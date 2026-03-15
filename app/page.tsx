@@ -118,7 +118,7 @@ const FEATURES = [
     label: 'Dashboard',
     title: 'Everything at a glance',
     desc: "Open the app and instantly see your total balance, how much you've spent this month vs your budget, and your most recent transactions — all on one screen.",
-    screenshot: '/home-page.jpeg',
+    screenshot: '/home-page.svg',
     alt: 'Pennify home dashboard showing balance and transactions',
   },
   {
@@ -127,7 +127,7 @@ const FEATURES = [
     label: 'Reports',
     title: 'See where your money really goes',
     desc: 'A beautiful donut chart breaks down your spending by category every month. Hover any slice to drill into the numbers. Navigate month by month to spot trends.',
-    screenshot: '/report.jpeg',
+    screenshot: '/report.svg',
     alt: 'Pennify monthly spending report with donut chart',
   },
   {
@@ -136,7 +136,7 @@ const FEATURES = [
     label: 'Budget & Goals',
     title: 'Plan spending. Save for goals.',
     desc: "Set per-category budgets so you always know when you're close to your limit. Add savings goals for big purchases and track your progress every month.",
-    screenshot: '/plan-budgets-for-category-and-for-goals.jpeg',
+    screenshot: '/plan-budgets-for-category-and-for-goals.svg',
     alt: 'Pennify budget tracking and savings goals',
   },
   {
@@ -145,7 +145,7 @@ const FEATURES = [
     label: '40+ Categories',
     title: '40+ categories built in',
     desc: 'Food & Drink, Transport, Shopping, Health, Entertainment and more — organized into groups that match how you actually spend. Fully customizable too.',
-    screenshot: '/40-categories-for-you.jpeg',
+    screenshot: '/40-categories-for-you.svg',
     alt: 'Pennify 40+ spending categories',
   },
   {
@@ -154,7 +154,7 @@ const FEATURES = [
     label: 'Subscriptions',
     title: 'Know your monthly commitments',
     desc: 'Every recurring payment in one place. See the total monthly cost of all your subscriptions, when each renews next, and which category it belongs to.',
-    screenshot: '/track-subscriptions.jpeg',
+    screenshot: '/track-subscriptions.svg',
     alt: 'Pennify subscription tracker showing Netflix, Gym, Claude',
   },
   {
@@ -163,7 +163,7 @@ const FEATURES = [
     label: 'Smart Rules',
     title: 'Automate what you repeat',
     desc: 'Create keyword rules once — "healthy food" → Gym & Fitness, "outside food" → Restaurants. Every matching transaction is instantly categorized, no AI needed.',
-    screenshot: '/smart-rules.jpeg',
+    screenshot: '/smart-rules.svg',
     alt: 'Pennify smart rules for auto-categorization',
   },
 ];
@@ -573,7 +573,7 @@ export default function Home() {
                 margin: '0 0 20px',
               }}
             >
-              Track every rupee.
+              Track every penny.
               <br />
               <span style={{ color: '#888' }}>AI handles the rest.</span>
             </h1>
@@ -651,7 +651,7 @@ export default function Home() {
           <div className='a-in' style={{ position: 'relative', flexShrink: 0 }}>
             <div className='phone-hero'>
               <PhoneFrame
-                src='/home-page.jpeg'
+                src='/home-page.svg'
                 alt='Pennify home dashboard'
                 width={256}
               />
@@ -770,7 +770,7 @@ export default function Home() {
                   letterSpacing: '-0.5px',
                 }}
               >
-                ₹13,289
+                $1,289
               </div>
               <div
                 style={{
@@ -808,7 +808,7 @@ export default function Home() {
         >
           {[
             ['40+', 'Smart categories'],
-            ['₹0', 'Monthly cost'],
+            ['$0', 'Monthly cost'],
             ['100%', 'Offline capable'],
             ['< 1s', 'AI categorization'],
           ].map(([n, l]) => (
@@ -908,7 +908,7 @@ export default function Home() {
         >
           <div className='a-in' style={{ flexShrink: 0 }}>
             <PhoneFrame
-              src='/monthly-transactions.jpeg'
+              src='/monthly-transactions.svg'
               alt='Monthly transactions view'
               width={248}
             />
