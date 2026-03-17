@@ -523,14 +523,23 @@ export const listSixMonths = query({
         q.eq('userId', userId).gte('date', startDate)
       )
       .collect();
-    return txs.map((tx) => ({
-      _id: tx._id,
-      title: tx.title,
-      amount: tx.amount,
-      date: tx.date,
-      categoryId: tx.categoryId,
-      note: tx.note,
-    }));
+    return await Promise.all(
+      txs.map(async (tx) => {
+        let categoryName = 'Uncategorized';
+        if (tx.categoryId) {
+          const cat = await ctx.db.get(tx.categoryId as Id<'categories'>);
+          if (cat) categoryName = cat.name;
+        }
+        return {
+          _id: tx._id,
+          title: tx.title,
+          amount: tx.amount,
+          date: tx.date,
+          categoryName,
+          note: tx.note,
+        };
+      })
+    );
   },
 });
 
