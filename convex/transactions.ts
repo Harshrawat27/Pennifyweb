@@ -510,6 +510,30 @@ export const getStatsForPeriod = query({
   },
 });
 
+export const listSixMonths = query({
+  args: { userId: v.string() },
+  handler: async (ctx, { userId }) => {
+    await requireAuth(ctx, userId);
+    const now = new Date();
+    const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+    const startDate = sixMonthsAgo.toISOString().slice(0, 10);
+    const txs = await ctx.db
+      .query('transactions')
+      .withIndex('by_user_date', (q) =>
+        q.eq('userId', userId).gte('date', startDate)
+      )
+      .collect();
+    return txs.map((tx) => ({
+      _id: tx._id,
+      title: tx.title,
+      amount: tx.amount,
+      date: tx.date,
+      categoryName: tx.categoryName,
+      note: tx.note,
+    }));
+  },
+});
+
 // Monthly income/expenses for every month in a year — used by year view
 export const getYearlyMonthly = query({
   args: { userId: v.string(), year: v.string() },
