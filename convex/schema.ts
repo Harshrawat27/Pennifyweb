@@ -153,4 +153,13 @@ export default defineSchema({
     categoryColor: v.string(), // denormalized
     createdAt: v.string(),     // ISO string — used for "first match wins" ordering
   }).index('by_user', ['userId']),
+
+  announcements: defineTable({
+    title: v.string(),
+    body: v.string(),
+    link: v.optional(v.string()),
+    linkLabel: v.optional(v.string()),
+    isActive: v.boolean(),
+    expiresAt: v.optional(v.string()),
+  }),
 });
