@@ -528,7 +528,7 @@ export const listSixMonths = query({
       title: tx.title,
       amount: tx.amount,
       date: tx.date,
-      categoryName: tx.categoryName,
+      categoryId: tx.categoryId,
       note: tx.note,
     }));
   },
