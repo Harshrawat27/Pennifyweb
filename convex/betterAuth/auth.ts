@@ -40,10 +40,10 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
       },
     },
     trustedOrigins: [
-      "spendler://",
-      "https://pennifyweb.vercel.app",
-      "exp://",
-      "exp://*",
+      'spendler://',
+      'https://spendler.app',
+      'exp://',
+      'exp://*',
     ],
     plugins: [expo(), convex({ authConfig })],
   } satisfies BetterAuthOptions;
