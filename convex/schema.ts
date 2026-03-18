@@ -162,4 +162,22 @@ export default defineSchema({
     isActive: v.boolean(),
     expiresAt: v.optional(v.string()),
   }),
+
+  people_debts: defineTable({
+    userId: v.string(),
+    name: v.string(),
+    type: v.union(v.literal('lent'), v.literal('borrowed')),
+    totalAmount: v.number(),
+    date: v.string(), // YYYY-MM-DD
+    note: v.optional(v.string()),
+    isSettled: v.optional(v.boolean()),
+  }).index('by_user', ['userId']),
+
+  debt_payments: defineTable({
+    userId: v.string(),
+    debtId: v.id('people_debts'),
+    amount: v.number(),
+    date: v.string(), // YYYY-MM-DD
+    note: v.optional(v.string()),
+  }).index('by_debt', ['debtId']),
 });
