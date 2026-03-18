@@ -16,7 +16,7 @@ export default function TermsOfService() {
           borderBottom: "1px solid #f0f0f0",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <a href="/" style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000", textDecoration: "none" }}>Pennify</a>
+            <a href="/" style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000", textDecoration: "none" }}>Spendler</a>
             <a
               href="https://apps.apple.com/app/pennify"
               className="btn-hover"
@@ -50,16 +50,16 @@ export default function TermsOfService() {
 
           {/* Intro */}
           <p style={{ fontSize: 16, lineHeight: 1.75, color: "#444", marginBottom: 40 }}>
-            Please read these Terms of Service ("Terms") carefully before using the Pennify mobile application or website (the "Service"). By accessing or using the Service, you agree to be bound by these Terms.
+            Please read these Terms of Service ("Terms") carefully before using the Spendler mobile application or website (the "Service"). By accessing or using the Service, you agree to be bound by these Terms.
           </p>
 
           <Section title="1. Acceptance of Terms">
-            <p>By creating an account or using Pennify, you confirm that you are at least 13 years of age and agree to these Terms and our Privacy Policy. If you do not agree, please do not use the Service.</p>
+            <p>By creating an account or using Spendler, you confirm that you are at least 13 years of age and agree to these Terms and our Privacy Policy. If you do not agree, please do not use the Service.</p>
           </Section>
 
           <Section title="2. Description of Service">
-            <p>Pennify is a personal finance management application that helps you track income and expenses, set budgets, manage saving goals, and gain insights into your spending. The Service is provided for personal, non-commercial use only.</p>
-            <p>Pennify is a <strong>tracking tool only</strong>. We are not a bank, financial institution, or financial advisor. Nothing in the Service constitutes financial, investment, legal, or tax advice.</p>
+            <p>Spendler is a personal finance management application that helps you track income and expenses, set budgets, manage saving goals, and gain insights into your spending. The Service is provided for personal, non-commercial use only.</p>
+            <p>Spendler is a <strong>tracking tool only</strong>. We are not a bank, financial institution, or financial advisor. Nothing in the Service constitutes financial, investment, legal, or tax advice.</p>
           </Section>
 
           <Section title="3. Account Registration">
@@ -73,7 +73,7 @@ export default function TermsOfService() {
 
           <Section title="4. Subscriptions & Payments">
             <SubSection title="Free vs Premium">
-              <p>Pennify offers a free trial period. Continued access to all features requires an active Premium subscription (monthly or yearly).</p>
+              <p>Spendler offers a free trial period. Continued access to all features requires an active Premium subscription (monthly or yearly).</p>
             </SubSection>
             <SubSection title="Billing">
               <p>Subscriptions are billed through the Apple App Store. By subscribing, you agree to Apple's payment terms. Prices are displayed in your local currency at the time of purchase.</p>
@@ -99,7 +99,7 @@ export default function TermsOfService() {
           </Section>
 
           <Section title="6. Your Data">
-            <p>You retain ownership of all financial data you enter into Pennify. By using the Service, you grant us a limited licence to store and process your data solely for the purpose of providing the Service to you.</p>
+            <p>You retain ownership of all financial data you enter into Spendler. By using the Service, you grant us a limited licence to store and process your data solely for the purpose of providing the Service to you.</p>
             <p>You can export or delete your data at any time. See our <a href="/privacy" style={{ color: "#000", fontWeight: 600 }}>Privacy Policy</a> for details on how we handle your data.</p>
           </Section>
 
@@ -114,7 +114,7 @@ export default function TermsOfService() {
           </Section>
 
           <Section title="8. Limitation of Liability">
-            <p>To the maximum extent permitted by applicable law, Pennify and its developer shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data or financial loss, arising from your use of the Service.</p>
+            <p>To the maximum extent permitted by applicable law, Spendler and its developer shall not be liable for any indirect, incidental, special, consequential, or punitive damages, including loss of data or financial loss, arising from your use of the Service.</p>
             <p>Our total liability to you for any claims arising from the Service shall not exceed the amount you paid for the Service in the 12 months preceding the claim.</p>
           </Section>
 
@@ -134,7 +134,7 @@ export default function TermsOfService() {
           <Section title="12. Contact Us">
             <p>If you have any questions about these Terms, please contact us at:</p>
             <div style={{ backgroundColor: "#fff", border: "1px solid #f0f0f0", borderRadius: 14, padding: "20px 24px", marginTop: 12 }}>
-              <p style={{ margin: 0, fontWeight: 600 }}>Pennify</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>Spendler</p>
               <p style={{ margin: "6px 0 0", color: "#a3a3a3" }}>support@pennify.app</p>
             </div>
           </Section>
@@ -145,8 +145,8 @@ export default function TermsOfService() {
         <footer style={{ backgroundColor: "#fafafa", borderTop: "1px solid #f0f0f0", padding: "36px 24px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Pennify</span>
-              <p style={{ fontSize: 12, color: "#a3a3a3", margin: "4px 0 0" }}>© 2025 Pennify. All rights reserved.</p>
+              <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
+              <p style={{ fontSize: 12, color: "#a3a3a3", margin: "4px 0 0" }}>© 2025 Spendler. All rights reserved.</p>
             </div>
             <div style={{ display: "flex", gap: 24 }}>
               <a href="/privacy" style={{ fontSize: 13, color: "#a3a3a3", textDecoration: "none", fontWeight: 500 }}>Privacy Policy</a>

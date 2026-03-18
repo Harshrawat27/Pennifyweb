@@ -85,7 +85,7 @@ const FEATURES = [
     title: 'Everything at a glance',
     desc: "Open the app and instantly see your total balance, how much you've spent this month vs your budget, and your most recent transactions — all on one screen.",
     screenshot: '/home-page.svg',
-    alt: 'Pennify home dashboard showing balance and transactions',
+    alt: 'Spendler home dashboard showing balance and transactions',
   },
   {
     id: 'reports',
@@ -94,7 +94,7 @@ const FEATURES = [
     title: 'See where your money really goes',
     desc: 'A beautiful donut chart breaks down your spending by category every month. Hover any slice to drill into the numbers. Navigate month by month to spot trends.',
     screenshot: '/report.svg',
-    alt: 'Pennify monthly spending report with donut chart',
+    alt: 'Spendler monthly spending report with donut chart',
   },
   {
     id: 'budgets',
@@ -103,7 +103,7 @@ const FEATURES = [
     title: 'Plan spending. Save for goals.',
     desc: "Set per-category budgets so you always know when you're close to your limit. Add savings goals for big purchases and track your progress every month.",
     screenshot: '/plan-budgets-for-category-and-for-goals.svg',
-    alt: 'Pennify budget tracking and savings goals',
+    alt: 'Spendler budget tracking and savings goals',
   },
   {
     id: 'categories',
@@ -112,7 +112,7 @@ const FEATURES = [
     title: '40+ categories built in',
     desc: 'Food & Drink, Transport, Shopping, Health, Entertainment and more — organized into groups that match how you actually spend. Fully customizable too.',
     screenshot: '/40-categories-for-you.svg',
-    alt: 'Pennify 40+ spending categories',
+    alt: 'Spendler 40+ spending categories',
   },
   {
     id: 'subscriptions',
@@ -121,7 +121,7 @@ const FEATURES = [
     title: 'Know your monthly commitments',
     desc: 'Every recurring payment in one place. See the total monthly cost of all your subscriptions, when each renews next, and which category it belongs to.',
     screenshot: '/track-subscriptions.svg',
-    alt: 'Pennify subscription tracker showing Netflix, Gym, Claude',
+    alt: 'Spendler subscription tracker showing Netflix, Gym, Claude',
   },
   {
     id: 'rules',
@@ -130,7 +130,7 @@ const FEATURES = [
     title: 'Automate what you repeat',
     desc: 'Create keyword rules once — "healthy food" → Gym & Fitness, "outside food" → Restaurants. Every matching transaction is instantly categorized, no AI needed.',
     screenshot: '/smart-rules.svg',
-    alt: 'Pennify smart rules for auto-categorization',
+    alt: 'Spendler smart rules for auto-categorization',
   },
 ];
 
@@ -266,7 +266,7 @@ function Navbar() {
               letterSpacing: '-0.5px',
             }}
           >
-            Pennify
+            Spendler
           </span>
 
           {/* Desktop links */}
@@ -554,7 +554,7 @@ export default function Home() {
                 fontWeight: 400,
               }}
             >
-              Add a transaction, Pennify categorizes it instantly. Set budgets,
+              Add a transaction, Spendler categorizes it instantly. Set budgets,
               track goals, monitor subscriptions — all in one clean app.
             </p>
             <div
@@ -616,7 +616,7 @@ export default function Home() {
           {/* Phone + floating card */}
           <div className='a-in' style={{ position: 'relative', flexShrink: 0 }}>
             <div className='phone-hero'>
-              <AppImg src='/home-page.svg' alt='Pennify home dashboard' width={320} />
+              <AppImg src='/home-page.svg' alt='Spendler home dashboard' width={320} />
             </div>
 
             {/* Floating AI categorization card */}
@@ -845,7 +845,7 @@ export default function Home() {
               }}
             >
               From daily transactions to long-term goals — explore every feature
-              Pennify has to offer.
+              Spendler has to offer.
             </p>
           </div>
           <FeaturesTabs />
@@ -1065,7 +1065,7 @@ export default function Home() {
                 letterSpacing: '-0.5px',
               }}
             >
-              Pennify
+              Spendler
             </div>
             <div style={{ fontSize: 13, color: '#444' }}>
               Personal finance, crystal clear.
@@ -1083,7 +1083,7 @@ export default function Home() {
             </a>
           </div>
           <div style={{ fontSize: 13, color: '#333' }}>
-            © 2026 Pennify. All rights reserved.
+            © 2026 Spendler. All rights reserved.
           </div>
         </div>
       </footer>

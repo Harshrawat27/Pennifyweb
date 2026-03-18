@@ -40,7 +40,7 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
       },
     },
     trustedOrigins: [
-      "pennify://",
+      "spendler://",
       "https://pennifyweb.vercel.app",
       "exp://",
       "exp://*",

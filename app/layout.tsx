@@ -12,7 +12,7 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
-  title: 'Pennify — Personal Finance, Crystal Clear',
+  title: 'Spendler — Personal Finance, Crystal Clear',
   description:
     'Track expenses, set budgets, reach your goals. AI-powered categorization with full offline support.',
 };

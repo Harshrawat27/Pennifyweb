@@ -16,7 +16,7 @@ export default function PrivacyPolicy() {
           borderBottom: "1px solid #f0f0f0",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <a href="/" style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000", textDecoration: "none" }}>Pennify</a>
+            <a href="/" style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000", textDecoration: "none" }}>Spendler</a>
             <a
               href="https://apps.apple.com/app/pennify"
               className="btn-hover"
@@ -50,7 +50,7 @@ export default function PrivacyPolicy() {
 
           {/* Intro */}
           <p style={{ fontSize: 16, lineHeight: 1.75, color: "#444", marginBottom: 40 }}>
-            Pennify ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use the Pennify mobile application and website (collectively, the "Service").
+            Spendler ("we", "our", or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use the Spendler mobile application and website (collectively, the "Service").
           </p>
 
           <Section title="1. Information We Collect">
@@ -116,7 +116,7 @@ export default function PrivacyPolicy() {
           </Section>
 
           <Section title="7. Children's Privacy">
-            <p>Pennify is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately.</p>
+            <p>Spendler is not directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe we have inadvertently collected such information, please contact us immediately.</p>
           </Section>
 
           <Section title="8. Changes to This Policy">
@@ -126,7 +126,7 @@ export default function PrivacyPolicy() {
           <Section title="9. Contact Us">
             <p>If you have any questions about this Privacy Policy, please contact us at:</p>
             <div style={{ backgroundColor: "#fff", border: "1px solid #f0f0f0", borderRadius: 14, padding: "20px 24px", marginTop: 12 }}>
-              <p style={{ margin: 0, fontWeight: 600 }}>Pennify</p>
+              <p style={{ margin: 0, fontWeight: 600 }}>Spendler</p>
               <p style={{ margin: "6px 0 0", color: "#a3a3a3" }}>support@pennify.app</p>
             </div>
           </Section>
@@ -137,8 +137,8 @@ export default function PrivacyPolicy() {
         <footer style={{ backgroundColor: "#fafafa", borderTop: "1px solid #f0f0f0", padding: "36px 24px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Pennify</span>
-              <p style={{ fontSize: 12, color: "#a3a3a3", margin: "4px 0 0" }}>© 2025 Pennify. All rights reserved.</p>
+              <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
+              <p style={{ fontSize: 12, color: "#a3a3a3", margin: "4px 0 0" }}>© 2025 Spendler. All rights reserved.</p>
             </div>
             <div style={{ display: "flex", gap: 24 }}>
               <a href="/privacy" style={{ fontSize: 13, color: "#a3a3a3", textDecoration: "none", fontWeight: 500 }}>Privacy Policy</a>

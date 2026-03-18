@@ -7,11 +7,20 @@ export async function POST(req: NextRequest) {
   const { question, transactions, preferences } = await req.json();
 
   if (!question || !transactions) {
-    return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400 });
+    return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+      status: 400,
+    });
   }
 
   const currency = preferences?.currency ?? 'INR';
-  const currencySymbol = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency;
+  const currencySymbol =
+    currency === 'INR'
+      ? '₹'
+      : currency === 'USD'
+        ? '$'
+        : currency === 'EUR'
+          ? '€'
+          : currency;
   const monthlyBudget = preferences?.monthlyBudget ?? null;
 
   const txSummary = transactions.map((tx: any) => ({
@@ -22,7 +31,7 @@ export async function POST(req: NextRequest) {
     note: tx.note ?? '',
   }));
 
-  const systemPrompt = `You are Penny, a smart personal finance assistant built into the Pennify app. You have access to the user's transaction history for the past 6 months.
+  const systemPrompt = `You are Penny, a smart personal finance assistant built into the Spendler app. You have access to the user's transaction history for the past 6 months.
 
 User preferences:
 - Currency: ${currency} (${currencySymbol})
@@ -57,7 +66,9 @@ Rules:
       for await (const chunk of stream) {
         const text = chunk.choices[0]?.delta?.content ?? '';
         if (text) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
+          controller.enqueue(
+            encoder.encode(`data: ${JSON.stringify({ text })}\n\n`)
+          );
         }
       }
       controller.enqueue(encoder.encode('data: [DONE]\n\n'));
@@ -69,7 +80,7 @@ Rules:
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
-      'Connection': 'keep-alive',
+      Connection: 'keep-alive',
     },
   });
 }
