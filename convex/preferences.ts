@@ -85,6 +85,29 @@ export const updateSubscription = mutation({
   },
 });
 
+// Called by the webhook API route — no user auth, verified by REVENUECAT_WEBHOOK_SECRET in the API route
+export const updateSubscriptionFromWebhook = mutation({
+  args: {
+    userId: v.string(),
+    subscriptionStatus: v.union(
+      v.literal('none'),
+      v.literal('monthly'),
+      v.literal('yearly'),
+      v.literal('expired')
+    ),
+    subscriptionExpiresAt: v.optional(v.string()),
+  },
+  handler: async (ctx, { userId, subscriptionStatus, subscriptionExpiresAt }) => {
+    const existing = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', userId))
+      .first();
+    if (existing) {
+      await ctx.db.patch(existing._id, { subscriptionStatus, subscriptionExpiresAt });
+    }
+  },
+});
+
 export const updateHideBalance = mutation({
   args: { userId: v.string(), hideBalance: v.boolean() },
   handler: async (ctx, { userId, hideBalance }) => {
