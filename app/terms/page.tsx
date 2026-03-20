@@ -44,7 +44,7 @@ export default function TermsOfService() {
               Terms of Service
             </h1>
             <p style={{ fontSize: 15, color: "#a3a3a3", margin: 0 }}>
-              Last updated: March 2025
+              Last updated: March 2026
             </p>
           </div>
 
@@ -72,17 +72,23 @@ export default function TermsOfService() {
           </Section>
 
           <Section title="4. Subscriptions & Payments">
-            <SubSection title="Free vs Premium">
-              <p>Spendler offers a free trial period. Continued access to all features requires an active Premium subscription (monthly or yearly).</p>
+            <SubSection title="Paid Subscription Required">
+              <p>Spendler is a paid application. Access to the Service requires an active subscription. There is no free or freemium tier — you must subscribe to use the app.</p>
+              <p>We offer two subscription plans:</p>
+              <ul>
+                <li><strong>Monthly:</strong> $9.99 per month</li>
+                <li><strong>Yearly:</strong> $29.99 per year</li>
+              </ul>
+              <p>Prices are displayed in your local currency at the time of purchase and may vary by region.</p>
             </SubSection>
             <SubSection title="Billing">
-              <p>Subscriptions are billed through the Apple App Store. By subscribing, you agree to Apple's payment terms. Prices are displayed in your local currency at the time of purchase.</p>
+              <p>Subscriptions are billed through the Apple App Store or Google Play Store depending on your platform. By subscribing, you agree to the applicable store's payment terms.</p>
             </SubSection>
             <SubSection title="Auto-renewal">
-              <p>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription at any time in your Apple ID account settings.</p>
+              <p>Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. You can manage or cancel your subscription at any time in your Apple ID account settings or Google Play account settings.</p>
             </SubSection>
             <SubSection title="Refunds">
-              <p>All purchases are processed through the Apple App Store. Refund requests are subject to Apple's refund policy. We do not process refunds directly.</p>
+              <p>All purchases are processed through the Apple App Store or Google Play Store. Refund requests are subject to the respective store's refund policy. We do not process refunds directly.</p>
             </SubSection>
           </Section>
 
