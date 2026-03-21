@@ -53,17 +53,9 @@ export async function POST(req: NextRequest) {
   }
 
   const eventType: string = event.type ?? '';
-  const userId: string = event.app_user_id ?? '';
-  const originalUserId: string = event.original_app_user_id ?? '';
-  const productId: string = event.product_id ?? '';
-  const expiresAtMs: number | undefined = event.expiration_at_ms;
 
-  if (!userId) {
-    return NextResponse.json({ ok: true }); // nothing to update
-  }
-
-  // Handle TRANSFER — TRANSFER events use transferred_from/transferred_to arrays
-  // NOT app_user_id or original_app_user_id
+  // Handle TRANSFER first — these events don't have app_user_id at all
+  // They use transferred_from/transferred_to arrays instead
   if (TRANSFER_EVENTS.has(eventType)) {
     const fromUserId: string = (event.transferred_from ?? [])[0] ?? '';
     const toUserId: string = (event.transferred_to ?? [])[0] ?? '';
@@ -81,6 +73,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Convex error' }, { status: 500 });
     }
     return NextResponse.json({ ok: true });
+  }
+
+  // All other events require app_user_id
+  const userId: string = event.app_user_id ?? '';
+  const originalUserId: string = event.original_app_user_id ?? '';
+  const productId: string = event.product_id ?? '';
+  const expiresAtMs: number | undefined = event.expiration_at_ms;
+
+  if (!userId) {
+    return NextResponse.json({ ok: true }); // nothing to update
   }
 
   // Security: only update if the purchase belongs to this user
