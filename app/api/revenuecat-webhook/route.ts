@@ -17,6 +17,7 @@ const EXPIRED_EVENTS = new Set([
   'CANCELLATION',
   'BILLING_ISSUE',
 ]);
+const TRANSFER_EVENTS = new Set(['TRANSFER']);
 
 function getSubStatus(
   eventType: string,
@@ -53,11 +54,40 @@ export async function POST(req: NextRequest) {
 
   const eventType: string = event.type ?? '';
   const userId: string = event.app_user_id ?? '';
+  const originalUserId: string = event.original_app_user_id ?? '';
   const productId: string = event.product_id ?? '';
   const expiresAtMs: number | undefined = event.expiration_at_ms;
 
   if (!userId) {
     return NextResponse.json({ ok: true }); // nothing to update
+  }
+
+  // Handle TRANSFER — TRANSFER events use transferred_from/transferred_to arrays
+  // NOT app_user_id or original_app_user_id
+  if (TRANSFER_EVENTS.has(eventType)) {
+    const fromUserId: string = (event.transferred_from ?? [])[0] ?? '';
+    const toUserId: string = (event.transferred_to ?? [])[0] ?? '';
+    if (!fromUserId || !toUserId || fromUserId === toUserId) {
+      return NextResponse.json({ ok: true });
+    }
+    console.log(`[RC Webhook] TRANSFER: ${fromUserId} → ${toUserId}`);
+    try {
+      await convex.mutation(api.preferences.transferSubscription, {
+        fromUserId,
+        toUserId,
+      });
+    } catch (err) {
+      console.error('[RC Webhook] TRANSFER Convex mutation failed:', err);
+      return NextResponse.json({ error: 'Convex error' }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true });
+  }
+
+  // Security: only update if the purchase belongs to this user
+  // Prevents shared Apple ID exploit where User B claims User A's subscription
+  if (originalUserId && userId !== originalUserId) {
+    console.log(`[RC Webhook] Skipping — app_user_id (${userId}) !== original_app_user_id (${originalUserId})`);
+    return NextResponse.json({ ok: true });
   }
 
   const status = getSubStatus(eventType, productId);

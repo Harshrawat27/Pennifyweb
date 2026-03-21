@@ -80,7 +80,9 @@ export const updateSubscription = mutation({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
     if (existing) {
-      await ctx.db.patch(existing._id, { subscriptionStatus, subscriptionExpiresAt });
+      const patch: Record<string, unknown> = { subscriptionStatus };
+      if (subscriptionExpiresAt !== undefined) patch.subscriptionExpiresAt = subscriptionExpiresAt;
+      await ctx.db.patch(existing._id, patch);
     }
   },
 });
@@ -103,7 +105,46 @@ export const updateSubscriptionFromWebhook = mutation({
       .withIndex('by_user', (q) => q.eq('userId', userId))
       .first();
     if (existing) {
-      await ctx.db.patch(existing._id, { subscriptionStatus, subscriptionExpiresAt });
+      const patch: Record<string, unknown> = { subscriptionStatus };
+      if (subscriptionExpiresAt !== undefined) patch.subscriptionExpiresAt = subscriptionExpiresAt;
+      await ctx.db.patch(existing._id, patch);
+    }
+  },
+});
+
+// Called by webhook on TRANSFER event — copies subscription from old user to new, revokes from old
+export const transferSubscription = mutation({
+  args: {
+    fromUserId: v.string(),
+    toUserId: v.string(),
+  },
+  handler: async (ctx, { fromUserId, toUserId }) => {
+    const fromPrefs = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', fromUserId))
+      .first();
+    const toPrefs = await ctx.db
+      .query('user_preferences')
+      .withIndex('by_user', (q) => q.eq('userId', toUserId))
+      .first();
+
+    // Grant subscription to new user — copy exact plan + expiry from old user
+    if (toPrefs) {
+      const patch: Record<string, unknown> = {
+        subscriptionStatus: fromPrefs?.subscriptionStatus ?? 'none',
+      };
+      if (fromPrefs?.subscriptionExpiresAt !== undefined) {
+        patch.subscriptionExpiresAt = fromPrefs.subscriptionExpiresAt;
+      }
+      await ctx.db.patch(toPrefs._id, patch);
+    }
+
+    // Revoke from old user
+    if (fromPrefs) {
+      await ctx.db.patch(fromPrefs._id, {
+        subscriptionStatus: 'none',
+        subscriptionExpiresAt: undefined,
+      });
     }
   },
 });
