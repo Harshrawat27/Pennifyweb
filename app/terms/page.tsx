@@ -16,7 +16,11 @@ export default function TermsOfService() {
           borderBottom: "1px solid #f0f0f0",
         }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 24px", height: 60, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <a href="/" style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000", textDecoration: "none" }}>Spendler</a>
+            <a href="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/logo.png" alt="Spendler logo" style={{ width: 28, height: 28, borderRadius: 7, display: "block" }} />
+              <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
+            </a>
             <a
               href="https://apps.apple.com/app/pennify"
               className="btn-hover"
@@ -151,7 +155,11 @@ export default function TermsOfService() {
         <footer style={{ backgroundColor: "#fafafa", borderTop: "1px solid #f0f0f0", padding: "36px 24px" }}>
           <div style={{ maxWidth: 1100, margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
             <div>
-              <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/logo.png" alt="Spendler logo" style={{ width: 26, height: 26, borderRadius: 6, display: "block" }} />
+                <span style={{ fontSize: 18, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
+              </div>
               <p style={{ fontSize: 12, color: "#a3a3a3", margin: "4px 0 0" }}>© 2025 Spendler. All rights reserved.</p>
             </div>
             <div style={{ display: "flex", gap: 24 }}>

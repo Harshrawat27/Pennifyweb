@@ -258,16 +258,13 @@ function Navbar() {
             justifyContent: 'space-between',
           }}
         >
-          <span
-            style={{
-              fontSize: 18,
-              fontWeight: 800,
-              color: '#111',
-              letterSpacing: '-0.5px',
-            }}
-          >
-            Spendler
-          </span>
+          <a href='/' style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src='/logo.png' alt='Spendler logo' style={{ width: 28, height: 28, borderRadius: 7, display: 'block' }} />
+            <span style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' }}>
+              Spendler
+            </span>
+          </a>
 
           {/* Desktop links */}
           <div className='nav-desktop-links'>
@@ -1056,16 +1053,10 @@ export default function Home() {
           }}
         >
           <div>
-            <div
-              style={{
-                fontSize: 18,
-                fontWeight: 800,
-                color: '#fff',
-                marginBottom: 4,
-                letterSpacing: '-0.5px',
-              }}
-            >
-              Spendler
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src='/logo.png' alt='Spendler logo' style={{ width: 26, height: 26, borderRadius: 6, display: 'block' }} />
+              <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Spendler</span>
             </div>
             <div style={{ fontSize: 13, color: '#444' }}>
               Personal finance, crystal clear.
