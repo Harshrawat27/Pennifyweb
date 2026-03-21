@@ -38,6 +38,10 @@ export const createAuthOptions = (ctx: GenericCtx<DataModel>) => {
         clientId: process.env.GOOGLE_CLIENT_ID!,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       },
+      apple: {
+        clientId: process.env.APPLE_CLIENT_ID!,
+        appBundleIdentifier: 'app.spendler',
+      },
     },
     trustedOrigins: [
       'spendler://',
