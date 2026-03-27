@@ -96,6 +96,8 @@ export default function SupportPage() {
           </a>
           <a
             href='https://apps.apple.com/us/app/spendler/id6760784989'
+            target='_blank'
+            rel='noopener noreferrer'
             style={{
               fontSize: 13, fontWeight: 600, color: '#fff',
               background: '#111', padding: '8px 18px', borderRadius: 99,

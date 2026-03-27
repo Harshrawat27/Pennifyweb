@@ -16,6 +16,8 @@ function AppStoreBadge() {
   return (
     <a
       href='https://apps.apple.com/us/app/spendler/id6760784989'
+      target='_blank'
+      rel='noopener noreferrer'
       style={{
         display: 'inline-block',
         lineHeight: 0,
@@ -256,6 +258,8 @@ function Navbar() {
           <a
             className='nav-desktop-cta'
             href='https://apps.apple.com/us/app/spendler/id6760784989'
+            target='_blank'
+            rel='noopener noreferrer'
             style={{
               fontSize: 13,
               fontWeight: 700,
@@ -352,6 +356,8 @@ function Navbar() {
           <a
             className='nav-mobile-cta'
             href='https://apps.apple.com/us/app/spendler/id6760784989'
+            target='_blank'
+            rel='noopener noreferrer'
           >
             Get the App
           </a>

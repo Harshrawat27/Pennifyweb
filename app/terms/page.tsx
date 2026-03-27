@@ -23,6 +23,8 @@ export default function TermsOfService() {
             </a>
             <a
               href="https://apps.apple.com/us/app/spendler/id6760784989"
+              target="_blank"
+              rel="noopener noreferrer"
               className="btn-hover"
               style={{
                 backgroundColor: "#000", color: "#fff",
