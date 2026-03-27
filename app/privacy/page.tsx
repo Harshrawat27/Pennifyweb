@@ -26,7 +26,7 @@ export default function PrivacyPolicy() {
               <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: "-0.04em", color: "#000" }}>Spendler</span>
             </a>
             <a
-              href="https://apps.apple.com/app/pennify"
+              href="https://apps.apple.com/us/app/spendler/id6760784989"
               className="btn-hover"
               style={{
                 backgroundColor: "#000", color: "#fff",

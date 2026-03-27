@@ -15,7 +15,7 @@ const hoverOff = (e: React.MouseEvent) => {
 function AppStoreBadge() {
   return (
     <a
-      href='https://apps.apple.com/app/pennify'
+      href='https://apps.apple.com/us/app/spendler/id6760784989'
       style={{
         display: 'inline-block',
         lineHeight: 0,
@@ -29,29 +29,6 @@ function AppStoreBadge() {
       <img
         src='/applestore.svg'
         alt='Download on the App Store'
-        style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
-      />
-    </a>
-  );
-}
-
-function GooglePlayBadge() {
-  return (
-    <a
-      href='https://play.google.com/store/apps/details?id=com.pennify'
-      style={{
-        display: 'inline-block',
-        lineHeight: 0,
-        textDecoration: 'none',
-        transition: 'opacity 0.18s, transform 0.18s',
-      }}
-      onMouseEnter={hoverOn}
-      onMouseLeave={hoverOff}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src='/googleplay.svg'
-        alt='Get it on Google Play'
         style={{ height: BADGE_HEIGHT, width: 'auto', display: 'block' }}
       />
     </a>
@@ -278,7 +255,7 @@ function Navbar() {
           {/* Desktop CTA */}
           <a
             className='nav-desktop-cta'
-            href='https://apps.apple.com/app/pennify'
+            href='https://apps.apple.com/us/app/spendler/id6760784989'
             style={{
               fontSize: 13,
               fontWeight: 700,
@@ -374,7 +351,7 @@ function Navbar() {
           ))}
           <a
             className='nav-mobile-cta'
-            href='https://apps.apple.com/app/pennify'
+            href='https://apps.apple.com/us/app/spendler/id6760784989'
           >
             Get the App
           </a>
@@ -564,7 +541,6 @@ export default function Home() {
               }}
             >
               <AppStoreBadge />
-              <GooglePlayBadge />
             </div>
             <div
               className='a-up-3'
@@ -1025,7 +1001,6 @@ export default function Home() {
             }}
           >
             <AppStoreBadge />
-            <GooglePlayBadge />
           </div>
           <p style={{ fontSize: 13, color: '#333', marginTop: 24 }}>
             Free download · No subscription required · Works offline

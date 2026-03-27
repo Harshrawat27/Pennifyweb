@@ -95,7 +95,7 @@ export default function SupportPage() {
             <span style={{ fontSize: 17, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' }}>Spendler</span>
           </a>
           <a
-            href='https://apps.apple.com/app/spendler'
+            href='https://apps.apple.com/us/app/spendler/id6760784989'
             style={{
               fontSize: 13, fontWeight: 600, color: '#fff',
               background: '#111', padding: '8px 18px', borderRadius: 99,
