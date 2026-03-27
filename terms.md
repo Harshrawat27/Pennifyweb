@@ -232,4 +232,4 @@ These Terms are governed by the laws of the jurisdiction where the developer is 
 
 For questions about these Terms: **support@spendler.app**
 
-We aim to respond within 5 business days.
+We aim to respond within 2 business days.

@@ -230,4 +230,4 @@ If we make material changes to this policy, we will notify you via an in-app ann
 
 Questions about this privacy policy: **support@spendler.app**
 
-We aim to respond within 5 business days.
+We aim to respond within 2 business days.
