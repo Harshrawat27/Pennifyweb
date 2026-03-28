@@ -81,8 +81,11 @@ export const commitAll = mutation({
     const { userId } = args;
     await requireAuth(ctx, userId);
 
+    const identity = await ctx.auth.getUserIdentity();
+    const email = identity?.email ?? undefined;
+
     // 1. Create user preferences
-    await ctx.db.insert('user_preferences', { userId, ...args.preferences });
+    await ctx.db.insert('user_preferences', { userId, ...args.preferences, email });
 
     // 2. Create accounts
     for (const acc of args.accounts) {
