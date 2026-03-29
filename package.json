@@ -12,6 +12,7 @@
     "@aws-sdk/client-s3": "^3.1004.0",
     "@better-auth/expo": "^1.4.9",
     "@convex-dev/better-auth": "0.10.10",
+    "@vercel/analytics": "^2.0.1",
     "better-auth": "1.4.9",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

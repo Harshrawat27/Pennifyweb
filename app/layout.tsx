@@ -3,6 +3,7 @@ import { Bricolage_Grotesque } from 'next/font/google';
 import { ConvexClientProvider } from '@/components/ConvexClientProvider';
 import { getToken } from '@/lib/auth-server';
 import './globals.css';
+import { Analytics } from '@vercel/analytics/next';
 
 const bricolage = Bricolage_Grotesque({
   variable: '--font-bricolage',
@@ -29,6 +30,7 @@ export default async function RootLayout({
         <ConvexClientProvider initialToken={token}>
           {children}
         </ConvexClientProvider>
+        <Analytics />
       </body>
     </html>
   );
