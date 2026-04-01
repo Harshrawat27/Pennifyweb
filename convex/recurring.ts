@@ -279,6 +279,30 @@ export const processMonthly = internalMutation({
         });
       }
     }
+
+    // ── Carry forward category budgets ─────────────────────────
+    const prevCategoryBudgets = await ctx.db
+      .query('budgets')
+      .filter((q) => q.eq(q.field('month'), previousMonth))
+      .collect();
+
+    for (const pb of prevCategoryBudgets) {
+      const existing = await ctx.db
+        .query('budgets')
+        .withIndex('by_user_month', (q) =>
+          q.eq('userId', pb.userId).eq('month', currentMonth)
+        )
+        .filter((q) => q.eq(q.field('parentCategoryId'), pb.parentCategoryId))
+        .first();
+      if (!existing) {
+        await ctx.db.insert('budgets', {
+          userId: pb.userId,
+          parentCategoryId: pb.parentCategoryId,
+          limitAmount: pb.limitAmount,
+          month: currentMonth,
+        });
+      }
+    }
   },
 });
 
