@@ -38,7 +38,15 @@ function AppStoreBadge() {
 }
 
 // ─── Phone Frame ──────────────────────────────────────────────────────────────
-function AppImg({ src, alt, width }: { src: string; alt: string; width: number }) {
+function AppImg({
+  src,
+  alt,
+  width,
+}: {
+  src: string;
+  alt: string;
+  width: number;
+}) {
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
@@ -237,10 +245,34 @@ function Navbar() {
             justifyContent: 'space-between',
           }}
         >
-          <a href='/' style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
+          <a
+            href='/'
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+              textDecoration: 'none',
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src='/logo.png' alt='Spendler logo' style={{ width: 28, height: 28, borderRadius: 7, display: 'block' }} />
-            <span style={{ fontSize: 18, fontWeight: 800, color: '#111', letterSpacing: '-0.5px' }}>
+            <img
+              src='/logo.png'
+              alt='Spendler logo'
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 7,
+                display: 'block',
+              }}
+            />
+            <span
+              style={{
+                fontSize: 18,
+                fontWeight: 800,
+                color: '#111',
+                letterSpacing: '-0.5px',
+              }}
+            >
               Spendler
             </span>
           </a>
@@ -595,7 +627,11 @@ export default function Home() {
           {/* Phone + floating card */}
           <div className='a-in' style={{ position: 'relative', flexShrink: 0 }}>
             <div className='phone-hero'>
-              <AppImg src='/home-page.svg' alt='Spendler home dashboard' width={320} />
+              <AppImg
+                src='/home-page.svg'
+                alt='Spendler home dashboard'
+                width={320}
+              />
             </div>
 
             {/* Floating AI categorization card */}
@@ -848,7 +884,11 @@ export default function Home() {
           }}
         >
           <div className='a-in' style={{ flexShrink: 0 }}>
-            <AppImg src='/monthly-transactions.svg' alt='Monthly transactions view' width={320} />
+            <AppImg
+              src='/monthly-transactions.svg'
+              alt='Monthly transactions view'
+              width={320}
+            />
           </div>
           <div style={{ flex: '1 1 300px', maxWidth: 460 }}>
             <div
@@ -973,7 +1013,7 @@ export default function Home() {
               marginBottom: 16,
             }}
           >
-            Start today — it&apos;s free
+            Start today — take your free trial
           </div>
           <h2
             style={{
@@ -1034,10 +1074,35 @@ export default function Home() {
           }}
         >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginBottom: 4,
+              }}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src='/logo.png' alt='Spendler logo' style={{ width: 26, height: 26, borderRadius: 6, display: 'block' }} />
-              <span style={{ fontSize: 18, fontWeight: 800, color: '#fff', letterSpacing: '-0.5px' }}>Spendler</span>
+              <img
+                src='/logo.png'
+                alt='Spendler logo'
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 6,
+                  display: 'block',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color: '#fff',
+                  letterSpacing: '-0.5px',
+                }}
+              >
+                Spendler
+              </span>
             </div>
             <div style={{ fontSize: 13, color: '#444' }}>
               Personal finance, crystal clear.
