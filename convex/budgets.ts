@@ -109,6 +109,19 @@ export const create = mutation({
   },
 });
 
+export const update = mutation({
+  args: {
+    id: v.id('budgets'),
+    limitAmount: v.number(),
+  },
+  handler: async (ctx, { id, limitAmount }) => {
+    const budget = await ctx.db.get(id);
+    if (!budget) return;
+    await requireAuth(ctx, budget.userId);
+    await ctx.db.patch(id, { limitAmount });
+  },
+});
+
 export const remove = mutation({
   args: { id: v.id('budgets') },
   handler: async (ctx, { id }) => {
