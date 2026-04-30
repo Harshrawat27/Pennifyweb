@@ -133,12 +133,24 @@ export const commitAll = mutation({
 
     // User's custom categories (added during onboarding)
     for (const cat of (args.customCategories ?? [])) {
-      const parentCategoryId = cat.parentCategory
-        ? (parentNameToId.get(cat.parentCategory) as any)
-        : undefined;
-      const color = cat.parentCategory
-        ? (DEFAULT_PARENT_CATEGORIES.find((p) => p.name === cat.parentCategory)?.color ?? '#6B7280')
-        : '#6B7280';
+      let parentCategoryId: any;
+      let color: string;
+      if (cat.parentCategory) {
+        parentCategoryId = parentNameToId.get(cat.parentCategory) as any;
+        color = DEFAULT_PARENT_CATEGORIES.find((p) => p.name === cat.parentCategory)?.color ?? '#6B7280';
+      } else {
+        // Standalone: auto-create a parent_categories entry so it can have its own budget
+        const standaloneParentId = await ctx.db.insert('parent_categories', {
+          userId,
+          name: cat.name,
+          icon: 'tag',
+          color: '#6B7280',
+          isDefault: false,
+        });
+        parentCategoryId = standaloneParentId;
+        parentNameToId.set(cat.name, standaloneParentId);
+        color = '#6B7280';
+      }
       await ctx.db.insert('categories', {
         userId,
         name: cat.name,

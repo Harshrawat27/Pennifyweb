@@ -52,7 +52,18 @@ export const create = mutation({
   },
   handler: async (ctx, { userId, name, icon, type, color, parentCategoryId }) => {
     await requireAuth(ctx, userId);
-    return await ctx.db.insert('categories', { userId, name, icon, type, color, parentCategoryId, isDefault: false });
+    let resolvedParentId = parentCategoryId;
+    // Standalone expense category with no parent → auto-create a parent_categories entry
+    if (!parentCategoryId && type === 'expense') {
+      resolvedParentId = await ctx.db.insert('parent_categories', {
+        userId,
+        name,
+        icon,
+        color,
+        isDefault: false,
+      }) as any;
+    }
+    return await ctx.db.insert('categories', { userId, name, icon, type, color, parentCategoryId: resolvedParentId, isDefault: false });
   },
 });
 
