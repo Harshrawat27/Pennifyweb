@@ -12,11 +12,7 @@ const ACTIVE_EVENTS = new Set([
   'PRODUCT_CHANGE',
   'UNCANCELLATION',
 ]);
-const EXPIRED_EVENTS = new Set([
-  'EXPIRATION',
-  'CANCELLATION',
-  'BILLING_ISSUE',
-]);
+const EXPIRED_EVENTS = new Set(['EXPIRATION']);
 const TRANSFER_EVENTS = new Set(['TRANSFER']);
 
 function getSubStatus(
