@@ -193,18 +193,9 @@ export default function TermsOfService() {
           </Section>
 
           <Section title='4. Subscription & Payments'>
-            <SubSection title='Free Trial'>
+            <SubSection title='Premium Subscription'>
               <p>
-                New accounts receive a <strong>3-day free trial</strong> with
-                full access to all premium features. No charge is made during
-                the trial period. You can use all features and delete your
-                account before the trial ends without being charged.
-              </p>
-            </SubSection>
-            <SubSection title='After the Trial'>
-              <p>
-                After the trial ends, access to premium features requires an
-                active paid subscription:
+                Access to premium features requires an active paid subscription:
               </p>
               <ul>
                 <li>

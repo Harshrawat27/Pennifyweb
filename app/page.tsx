@@ -1013,7 +1013,7 @@ export default function Home() {
               marginBottom: 16,
             }}
           >
-            Start today — take your free trial
+            Get started in minutes
           </div>
           <h2
             style={{

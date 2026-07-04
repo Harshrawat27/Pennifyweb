@@ -235,7 +235,7 @@ export default function PrivacyPolicy() {
                 </li>
                 <li>Income tracking toggle</li>
                 <li>Hide balance toggle</li>
-                <li>Subscription status (free trial, monthly, or yearly)</li>
+                <li>Subscription status (monthly or yearly)</li>
               </ul>
             </SubSection>
             <SubSection title='Device & Session Data'>
@@ -372,8 +372,8 @@ export default function PrivacyPolicy() {
                 <strong>What they receive:</strong> An anonymized user ID and
                 in-app purchase events from Apple.
                 <br />
-                <strong>Why:</strong> To validate your subscription, restore
-                purchases, and manage trial status.
+                <strong>Why:</strong> To validate your subscription and restore
+                purchases.
                 <br />
                 <strong>Their privacy policy:</strong> revenuecat.com/privacy
                 <br />
